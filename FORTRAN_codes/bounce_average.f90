@@ -6,8 +6,8 @@ subroutine bounce_average(h_arr,b_arr,theta_arr,lam,num_wells,bounce_idx, &
   ! of a given lambda.
   implicit none
   real(kind=8), dimension(:), intent(in)              :: h_arr, b_arr, theta_arr
-  integer,      dimension(:,:), intent(in)              :: bounce_idx
-  real(kind=8), dimension(:,:), intent(in)              :: bounce_arr
+  integer,      dimension(:), intent(in)              :: bounce_idx
+  real(kind=8), dimension(:), intent(in)              :: bounce_arr
   real(kind=8), dimension(size(b_arr))                :: f_arr
   real(kind=8), intent(in)                            :: lam
   integer,      intent(in)                            :: num_wells
