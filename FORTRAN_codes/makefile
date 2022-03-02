@@ -1,6 +1,6 @@
 
-FC=gfortran-mp-10
-FFLAGS= -g -fbacktrace -fallow-argument-mismatch
+FC=gfortran
+FFLAGS=  -g -fbacktrace -fbounds-check -fallow-argument-mismatch # -fcheck=all -Wall -Wextra -Wconversion -pedantic -O0
 LDFLAGS=
 
 OBJ=AE_proxy.o \
@@ -11,9 +11,10 @@ right_bounce_trapz.o \
 trapz.o \
 w_bounce.o \
 zero_cross_idx.o \
+zero_cross_count.o \
 bounce_average.o \
 AE_total.o \
-AE_integrand.o 
+AE_integrand.o
 
 
 %.o: %.f90
@@ -26,4 +27,4 @@ run: xaeproxy
 	@./xaeproxy
 
 clean:
-	@rm -rf *.o xaeproxy 
+	@rm -rf *.o xaeproxy
