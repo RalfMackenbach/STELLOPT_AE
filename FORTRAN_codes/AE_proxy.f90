@@ -102,7 +102,7 @@ subroutine AE_benchmark(N_theta,AE_tot)
   L_tot  = 1.0
 
 
-  shift_int = 0!N_theta/2
+  shift_int = 1!N_theta/2
   ! Make theta_arr
   theta = (2.0)*(/(i, i=0,N_theta-1, 1)/)/(N_theta-1) - one ! assign to y an array for theta [0,2]
   mod_b = CSHIFT(+one + (theta/theta_b)**2.0,                     shift_int)
@@ -112,13 +112,13 @@ subroutine AE_benchmark(N_theta,AE_tot)
 
   ! (q0, dlnTdx, dlnndx, Delta_x, Delta_y, b_arr, dbdx_arr, dbdy_arr, sqrtg_arr, theta_arr, lam_res, z_res, z_min, z_max, N, AE_tot)
   CALL AE_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,mod_b,dbdx,dbdy, &
-                sqrtg,theta,100,10000,z_min,z_max,N_theta,L_tot,AE_tot)
+                sqrtg,theta,10,10,z_min,z_max,N_theta,L_tot,AE_tot)
 end subroutine AE_benchmark
 
 
 program debug
   real(kind=8) :: AE_tot
-  ! CALL AE_benchmark(100000,AE_tot)
-  CALL compute_AE(AE_tot)
+  CALL AE_benchmark(3,AE_tot)
+  ! CALL compute_AE(AE_tot)
   print *,AE_tot
 end program debug
