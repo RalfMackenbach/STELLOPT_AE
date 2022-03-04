@@ -1,9 +1,9 @@
 ! Calculate total AE
 subroutine AE_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr, &
-                    sqrtg_arr,theta_arr,lam_res,z_res,z_min,z_max,N,AE_tot)
+                    sqrtg_arr,theta_arr,lam_res,z_res,z_min,z_max,N,L_tot,AE_tot)
   implicit none
   integer, intent(in)                   :: N
-  real(kind=8), intent(in)              :: q0, dlnTdx, dlnndx, Delta_x, Delta_y, z_min, z_max
+  real(kind=8), intent(in)              :: q0, dlnTdx, dlnndx, Delta_x, Delta_y, z_min, z_max, L_tot
   real(kind=8), dimension(N), intent(in):: b_arr, dbdx_arr, dbdy_arr, sqrtg_arr, theta_arr
   integer, intent(in)                   :: lam_res, z_res
   real(kind=8), dimension(:),allocatable:: z_arr, lam_arr, w_psi_arr, w_alpha_arr, G_arr, AE_per_lam, AE_over_z
@@ -11,7 +11,7 @@ subroutine AE_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr, &
   real(kind=8), dimension(:,:), allocatable :: bounce_arr
   integer,      dimension(:,:), allocatable :: bounce_idx
   integer, dimension(:), allocatable    :: zero_idx
-  real(kind=8)                          :: z_val, lam_val, AE, L_tot, lam, lam_max, lam_min, AE_int
+  real(kind=8)                          :: z_val, lam_val, AE, lam, lam_max, lam_min, AE_int
   real(kind=8), intent(out)             :: AE_tot
 
 
@@ -51,12 +51,12 @@ subroutine AE_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr, &
     ! Allocate the drifts arrays
     allocate(w_psi_arr(num_wells),w_alpha_arr(num_wells),G_arr(num_wells))
     ! Make drift arrays
-    call w_bounce(q0,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam_val, &
+    call w_bounce(q0,L_tot,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam_val, &
                   Delta_x,Delta_y,num_wells,w_psi_arr,w_alpha_arr,G_arr, &
                   N,bounce_idx,bounce_arr)
-    ! print *,w_alpha_arr
-    ! print *,w_psi_arr
-    ! print *,G_arr
+    ! print *,w_psi_arr,w_alpha_arr,G_arr
+    ! print *,'lam = ',lam_val,'w_alp = ',w_alpha_arr,'G = ',G_arr
+    print *,lam_val,w_psi_arr,w_alpha_arr,G_arr
 
     ! Loop over indices
     do z_idx = 1, z_res, 1
@@ -64,6 +64,7 @@ subroutine AE_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr, &
       call AE_integrand(num_wells,dlnTdx,dlnndx,Delta_x,z_val,w_alpha_arr,w_psi_arr,G_arr,AE)
       AE_over_z(z_idx) = AE
     end do
+
 
     deallocate(w_psi_arr,w_alpha_arr,G_arr)
     call trapz(z_arr, AE_over_z,size(z_arr),AE_int)

@@ -56,11 +56,11 @@ subroutine bounce_average(h_arr,b_arr,theta_arr,lam,num_wells,bounce_idx, &
       allocate( h_i(N_alloc), h_j(N_alloc), f_i(N_alloc), f_j(N_alloc), &
                 theta_i(N_alloc), theta_j(N_alloc) )
       h_i     = h_arr((1):(r_idx(do_idx)-1))
-      h_j     = h_arr((2):(r_idx(do_idx)))
+      h_j     = h_arr((2):(r_idx(do_idx)  ))
       f_i     = f_arr((1):(r_idx(do_idx)-1))
-      f_j     = f_arr((2):(r_idx(do_idx)))
+      f_j     = f_arr((2):(r_idx(do_idx)  ))
       theta_i = theta_arr((1):(r_idx(do_idx)-1))
-      theta_j = theta_arr((2):(r_idx(do_idx)))
+      theta_j = theta_arr((2):(r_idx(do_idx)  ))
       CALL inner_bounce_trapz(N_alloc,h_i,h_j,f_i,f_j,theta_i,theta_j,y_r)
       inner = y_l + y_r
     ! otherwise business as usual
@@ -106,10 +106,12 @@ subroutine bounce_average(h_arr,b_arr,theta_arr,lam,num_wells,bounce_idx, &
             theta_arr(r_idx(do_idx) )) * ( h_arr(r_idx(do_idx)+1) - &
             h_arr(r_idx(do_idx)) )
       CALL right_bounce_trapz(h_arr(r_idx(do_idx)),h_r,f_arr(r_idx(do_idx)), &
-                              0.0,r_cross(do_idx),theta_arr(r_idx(do_idx)), &
+                              0.0,theta_arr(r_idx(do_idx)),r_cross(do_idx), &
                               right)
     END IF
     ! finally, fill in full integral!
+    ! print *,'left, inner, right =',left,inner,right
     bounce_ave(do_idx)= left + inner + right
+
   END DO
 end subroutine bounce_average
