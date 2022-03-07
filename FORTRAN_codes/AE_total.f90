@@ -56,7 +56,7 @@ subroutine AE_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr, &
                   N,bounce_idx,bounce_arr)
     ! print *,w_psi_arr,w_alpha_arr,G_arr
     ! print *,'lam = ',lam_val,'w_alp = ',w_alpha_arr,'G = ',G_arr
-    print *,lam_val,w_psi_arr,w_alpha_arr,G_arr
+    ! print *,lam_val,w_psi_arr,w_alpha_arr,G_arr
 
     ! Loop over indices
     do z_idx = 1, z_res, 1

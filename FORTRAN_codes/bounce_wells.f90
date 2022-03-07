@@ -29,7 +29,7 @@ subroutine bounce_wells(b_arr,theta_arr,lam_val,N,num_cross,bounce_arr,bounce_id
     print *,'Odd number of well crossings, please adjust lambda resolution'
   END IF
   num_wells = num_cross/2
-
+  
 
   ! Check if the first crossing is end of well
   IF  ( b_arr(zero_idx(1)+1) - b_arr(zero_idx(1)) .GT. 0 ) THEN
@@ -43,7 +43,7 @@ subroutine bounce_wells(b_arr,theta_arr,lam_val,N,num_cross,bounce_arr,bounce_id
   ! If it is an end, there are two options for the type of well it is:
   ! 1) the well crosses the periodicity boundary.
   ! 2) the well ends discontinously at the periodicity boundary
-  ! Let's if a zero crossing is at the discontinous periodicity boundary
+  ! Let's check if a zero crossing is at the discontinous periodicity boundary
   IF ( zero_idx(SIZE(zero_idx)) .EQ. SIZE(zero_arr) ) THEN
     well_disc = 1
   ELSE

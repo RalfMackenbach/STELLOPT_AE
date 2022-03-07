@@ -69,7 +69,7 @@ subroutine compute_AE(AE_tot)
 
 
   CALL AE_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,Bhat_array/B_ave, &
-                L1_array/B_ave,L2_array/B_ave,sqrtg_arr,y,1000,2000, &
+                L1_array/B_ave,L2_array/B_ave,sqrtg_arr,y,10000,10000, &
                 z_min,z_max,N,L_tot,AE_tot)
 
   CLOSE(iunit)
@@ -112,13 +112,13 @@ subroutine AE_benchmark(N_theta,AE_tot)
 
   ! (q0, dlnTdx, dlnndx, Delta_x, Delta_y, b_arr, dbdx_arr, dbdy_arr, sqrtg_arr, theta_arr, lam_res, z_res, z_min, z_max, N, AE_tot)
   CALL AE_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,mod_b,dbdx,dbdy, &
-                sqrtg,theta,10,10,z_min,z_max,N_theta,L_tot,AE_tot)
+                sqrtg,theta,100,100,z_min,z_max,N_theta,L_tot,AE_tot)
 end subroutine AE_benchmark
 
 
 program debug
   real(kind=8) :: AE_tot
-  CALL AE_benchmark(3,AE_tot)
-  ! CALL compute_AE(AE_tot)
+  ! CALL AE_benchmark(3,AE_tot)
+  CALL compute_AE(AE_tot)
   print *,AE_tot
 end program debug
