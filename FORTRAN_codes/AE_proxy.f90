@@ -116,9 +116,18 @@ subroutine AE_benchmark(N_theta,AE_tot)
 end subroutine AE_benchmark
 
 
-program debug
+!program debug
+!  real(kind=8) :: AE_tot
+!  ! CALL AE_benchmark(3,AE_tot)
+!  CALL compute_AE(AE_tot)
+!  print *,AE_tot
+!end program debug
+
+program debug_SAL
+  USE trapped_avail_energy_mod
   real(kind=8) :: AE_tot
-  ! CALL AE_benchmark(3,AE_tot)
-  CALL compute_AE(AE_tot)
+  CHARACTER(256) :: filename
+  filename='gist_d3d_vac.txt'
+  CALL compute_AE_GIST(filename,AE_tot)
   print *,AE_tot
-end program debug
+end program debug_SAL

@@ -42,7 +42,7 @@
          real(kind=8)                              :: z_min, z_max, dlnndx, dlnTdx
          real(kind=8)                              :: a, pi, B_ave, r1, r2, L_tot, omn, omt
          real(kind=8), intent(out)                 :: AE_tot
-         CHARACTER(*), INTENT(inout)               :: gist_file
+         CHARACTER(*), INTENT(INOUT)               :: gist_file
 
          ! Import namelist
          namelist /PARAMETERS/ my_dpdx, q0, shat, gridpoints, n_pol
