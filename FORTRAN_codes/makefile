@@ -1,7 +1,8 @@
 
-FC=gfortran
+FC=gfortran-mp-10
 FFLAGS=  -g -fbacktrace -fbounds-check -fallow-argument-mismatch # -fcheck=all -Wall -Wextra -Wconversion -pedantic -O0
 LDFLAGS=
+AR=ar -ruvs
 
 OBJ=AE_proxy.o \
 bounce_wells.o \
@@ -14,7 +15,8 @@ zero_cross_idx.o \
 zero_cross_count.o \
 bounce_average.o \
 AE_total.o \
-AE_integrand.o
+AE_integrand.o \
+trapped_avail_energy_mod.o 
 
 
 %.o: %.f90
@@ -22,6 +24,9 @@ AE_integrand.o
 
 xaeproxy: $(OBJ)
 	$(FC) -o $@ $^ $(LDFLAGS) $(LIBS)
+
+libtrapAE.a: $(OBJ)
+	$(AR) $@ $(OBJ)
 
 run: xaeproxy
 	@./xaeproxy
