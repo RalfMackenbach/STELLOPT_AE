@@ -18,7 +18,7 @@ subroutine compute_AE(g11,g12,g22,Bhat,abs_jac,L1,L2,dBdt, &
   ! Please increase gridpoints for convergence checks.
   integer, intent(in)                       :: gridpoints, n_pol, z_res, lam_res
   real(kind=8), intent(in)                  :: my_dpdx, q0, shat, omn, omt
-  real(kind=8), intent(in)                  :: z_min, z_max, z_res, lam_res
+  real(kind=8), intent(in)                  :: z_min, z_max
   real(kind=8), dimension(N_arr), intent(in):: g11, g12, g22, Bhat, abs_jac, L2, L1, dBdt
   real(kind=8)                              :: Delta_x, Delta_y
   real(kind=8), dimension(N_arr)            :: y, sqrt_g
