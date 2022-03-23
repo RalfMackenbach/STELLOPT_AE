@@ -24,6 +24,7 @@ subroutine compute_AE(g11,g12,g22,Bhat,abs_jac,L1,L2,dBdt, &
   real(kind=8), dimension(N_arr)            :: y, sqrt_g
   real(kind=8)                              :: dlnndx, dlnTdx
   real(kind=8)                              :: a, pi, B_ave, r1, r2, L_tot
+  integer                                   :: N
   real(kind=8), intent(out)                 :: AE_tot
 
   ! define scalars
