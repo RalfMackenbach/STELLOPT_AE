@@ -13,15 +13,8 @@
 
 !-----------------------------------------------------------------------
 !     Module Variables
-!     PUBLIC
-!        Y             This is for example
-!                      
-!     PRIVATE
-!        X             This is for example
 !-----------------------------------------------------------------------
       IMPLICIT NONE
-      REAL(kind=8), PRIVATE :: X
-      REAL(kind=8)          :: Y
 
 !-----------------------------------------------------------------------
 !     Private Subroutines
