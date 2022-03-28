@@ -32,7 +32,18 @@
 !-----------------------------------------------------------------------
       CONTAINS
 
-      subroutine compute_AE_GIST(gist_file,AE_tot)
+      SUBROUTINE compute_AE_GIST(gist_file,AE_tot)
+         IMPLICIT NONE
+      !-----------------------------------------------------------------
+      !        Subroutine Input Variables
+      !           gist_file :  Filename of gist file.
+      !           AE_tot :     Total Free Energy.
+      !-----------------------------------------------------------------
+         real(kind=8), intent(out)                 :: AE_tot
+         CHARACTER(*), INTENT(INOUT)               :: gist_file
+      !-----------------------------------------------------------------
+      !        Subroutine Variables
+      !-----------------------------------------------------------------
          real(kind=8), dimension(:,:),allocatable  :: g11, g12, g22, Bhat, abs_jac, L2, L1, dBdt, dummy
          real(kind=8), dimension(:),  allocatable  :: Bhat_array, sqrtg_arr, L2_array, L1_array
 
@@ -41,11 +52,12 @@
          real(kind=8), dimension(:), allocatable   :: y
          real(kind=8)                              :: z_min, z_max, dlnndx, dlnTdx
          real(kind=8)                              :: a, pi, B_ave, r1, r2, L_tot, omn, omt
-         real(kind=8), intent(out)                 :: AE_tot
-         CHARACTER(*), INTENT(INOUT)               :: gist_file
 
-         ! Import namelist
+         ! GIST/GENE namelist
          namelist /PARAMETERS/ my_dpdx, q0, shat, gridpoints, n_pol
+      !-----------------------------------------------------------------
+      !        Begin Subroutine
+      !-----------------------------------------------------------------
 
          ! Import arrays
          iunit  = 1
@@ -79,27 +91,89 @@
          y = (/((i*a)/(N-1),i=0,N-1)/) ! assign to y an array for theta [0,a]
          ! print *,y
 
+         CALL compute_AE(N,g11,g12,g22,Bhat_array,abs_jac,L1,L2,dBdt, &
+                      n_pol, my_dpdx, q0, shat, 1.0D0, 0.0D0, &
+                      1D-4, 4.0D+1, 10000, 10000, AE_tot)
 
-         ! Calculate average B (arclength-averaged)
-         call trapz(y,q0*Bhat_array*Bhat_array*sqrtg_arr,N,r1)
-         call trapz(y,q0*Bhat_array*sqrtg_arr,N,r2)
-         B_ave = r1/r2
-         Delta_x = q0
-         Delta_y = q0
-         z_min = 0.0001
-         z_max = 40.0
-         omn   = 1.0
-         omt   = 0.0
-         dlnndx = -omn
-         dlnTdx = -omt
-
-         call trapz(y,q0*Bhat_array*sqrtg_arr/B_ave,N,L_tot)
-
-
-         CALL AE_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,Bhat_array/B_ave, &
-                       L1_array/B_ave,L2_array/B_ave,sqrtg_arr,y,10000,10000, &
-                       z_min,z_max,N,L_tot,AE_tot)
-
+         RETURN
+      !-----------------------------------------------------------------
+      !        End Subroutine
+      !-----------------------------------------------------------------
        end subroutine compute_AE_GIST
+
+
+       SUBROUTINE compute_AE(N_arr,g11,g12,g22,Bhat,abs_jac,L1,L2,dBdt, &
+                      n_pol, my_dpdx, q0, shat, omn, omt, &
+                      z_min, z_max, z_res, lam_res, AE_tot)
+          IMPLICIT NONE
+      !-----------------------------------------------------------------
+      !        Subroutine Input Variables
+      !           g11      g_s-s GIST Array
+      !           g12      g_s-theta GIST Array
+      !           g22      g_theta-theta GIST Array
+      !           Bhat     Normalized magnetic field Array
+      !           abs_jac  Normalized Jacobian
+      !           L1  
+      !           L2  
+      !           dBdt     dB/dtheta Array
+      !           n_pol    Polidal Turns (usually 1)
+      !           my_dpdx  Normalized pressure gradient
+      !           q0       1/iota
+      !           shat     Normalized radial coordinate
+      !           omn      Density Gradient (GENE Deff)
+      !           omt      Temperature Gradient (GENE Deff)
+      !           z_min    Minimum normalized Energy (1E-5)
+      !           z_max    Maximum normalized Energy (40)
+      !           z_res    Resolution of Integration Range (10000)
+      !           lam_res  Resolution of Pitch Angle Integration (10000)
+      !           AE_tot :     Total Free Energy.
+      !-----------------------------------------------------------------
+          integer, intent(in)                       :: N_arr, n_pol, z_res, lam_res
+          real(kind=8), intent(in)                  :: my_dpdx, q0, shat, omn, omt
+          real(kind=8), intent(in)                  :: z_min, z_max
+          real(kind=8), dimension(N_arr), intent(in):: g11, g12, g22, Bhat, abs_jac, L2, L1, dBdt
+          real(kind=8), intent(out)                 :: AE_tot
+      !-----------------------------------------------------------------
+      !        Subroutine Variables
+      !-----------------------------------------------------------------
+          real(kind=8)                              :: Delta_x, Delta_y
+          real(kind=8), dimension(N_arr)            :: y, sqrt_g
+          real(kind=8)                              :: dlnndx, dlnTdx
+          real(kind=8)                              :: a, B_ave, r1, r2, L_tot
+          integer                                   :: N, i
+
+      !-----------------------------------------------------------------
+      !        Begin Subroutine
+      !-----------------------------------------------------------------
+          ! define scalars
+          a = n_pol*2*4.D0*DATAN(1.D0) ! max of theta array
+          N = N_arr
+
+
+          y = (/((i*a)/(N-1),i=0,N-1)/) ! assign to y an array for theta [0,a]
+          sqrt_g = 1.0/abs_jac
+
+
+          ! Calculate average B (arclength-averaged)
+          call trapz(y,q0*Bhat*Bhat*sqrt_g,N,r1)
+          call trapz(y,q0*Bhat*sqrt_g,N,r2)
+          B_ave = r1/r2
+          Delta_x = q0
+          Delta_y = q0
+          dlnndx = -omn
+          dlnTdx = -omt
+
+          call trapz(y,q0*Bhat*sqrt_g/B_ave,N,L_tot)
+
+
+          CALL AE_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,Bhat/B_ave, &
+            L1/B_ave,L2/B_ave,sqrt_g,y,lam_res,z_res, &
+            z_min,z_max,N,L_tot,AE_tot)
+
+         RETURN
+      !-----------------------------------------------------------------
+      !        End Subroutine
+      !-----------------------------------------------------------------
+        END SUBROUTINE compute_AE
 
       END MODULE trapped_avail_energy_mod
