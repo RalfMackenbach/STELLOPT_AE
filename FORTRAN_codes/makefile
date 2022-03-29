@@ -1,8 +1,14 @@
-
+#GCC10 Macports
 FC=gfortran-mp-10
 FFLAGS=  -g -fbacktrace -fbounds-check -fallow-argument-mismatch # -fcheck=all -Wall -Wextra -Wconversion -pedantic -O0
 LDFLAGS=
 AR=ar -ruvs
+
+#Marconi
+#FC=ifort
+#FFLAGS = -g -traceback -O0 -xCORE-AVX512 -qopt-zmm-usage=high
+#LDFLAGS=
+#AR=ar -ruvs
 
 OBJ=AE_proxy.o \
 bounce_wells.o \
