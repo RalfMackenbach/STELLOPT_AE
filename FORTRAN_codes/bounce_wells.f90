@@ -28,7 +28,7 @@ subroutine bounce_wells(b_arr,theta_arr,lam_val,N,num_cross,bounce_arr,bounce_id
   IF (MOD(num_cross,2).NE.0) THEN
     print *,'Odd number of well crossings, please adjust lambda resolution'
   END IF
-  num_wells = num_cross/2
+  num_wells = MIN(num_cross/2,N)
   
 
   ! Check if the first crossing is end of well
