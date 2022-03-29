@@ -127,7 +127,7 @@ program debug_SAL
   USE trapped_avail_energy_mod
   real(kind=8) :: AE_tot
   CHARACTER(256) :: filename
-  filename='gist_d3d_vac.txt'
+  filename='gist_genet_AVAILENERGYOPT.txt'
   CALL compute_AE_GIST(filename,AE_tot)
   print *,AE_tot
 end program debug_SAL
