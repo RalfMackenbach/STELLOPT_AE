@@ -4,6 +4,7 @@
 !     Date:          03/21/2022
 !     Description:   This module is used to compute the available energy
 !                    of trapped particles three dimensional equilibira.
+!                    ( https://arxiv.org/pdf/2109.01042.pdf )
 !
 !-----------------------------------------------------------------------
       MODULE trapped_avail_energy_mod

@@ -1,4 +1,8 @@
 ! Calculate total AE
+! This script goes through all the steps involved in calculating the AE
+! That includes: calculating the drifts per bounce well and
+! Various other operations
+
 subroutine AE_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr, &
                     sqrtg_arr,theta_arr,lam_res,z_res,z_min,z_max,Delta_theta, &
                     N,L_tot,AE_tot)
