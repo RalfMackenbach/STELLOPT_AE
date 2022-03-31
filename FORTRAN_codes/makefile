@@ -1,5 +1,5 @@
 #GCC10 Macports
-FC=gfortran-mp-10
+FC=gfortran
 FFLAGS=  -g -fbacktrace -fbounds-check -fallow-argument-mismatch # -fcheck=all -Wall -Wextra -Wconversion -pedantic -O0
 LDFLAGS=
 AR=ar -ruvs
@@ -10,7 +10,9 @@ AR=ar -ruvs
 #LDFLAGS=
 #AR=ar -ruvs
 
-OBJ=AE_proxy.o \
+OBJ=AE_proxy.o\
+trapped_avail_energy_mod.o  \
+make_periodic.o \
 bounce_wells.o \
 inner_bounce_trapz.o \
 left_bounce_trapz.o \
@@ -22,7 +24,6 @@ zero_cross_count.o \
 bounce_average.o \
 AE_total.o \
 AE_integrand.o \
-trapped_avail_energy_mod.o 
 
 
 %.o: %.f90

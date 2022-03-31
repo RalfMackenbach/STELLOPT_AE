@@ -12,8 +12,8 @@ subroutine bounce_average(h_arr,b_arr,theta_arr,lam,num_wells,bounce_idx, &
   real(kind=8), dimension(N)                          :: f_arr
   real(kind=8), intent(in)                            :: lam
   integer                                             :: do_idx, N_alloc
-  integer,      dimension(num_wells)                :: l_idx, r_idx
-  real(kind=8), dimension(num_wells)                :: l_cross, r_cross
+  integer,      dimension(num_wells)                  :: l_idx, r_idx
+  real(kind=8), dimension(num_wells)                  :: l_cross, r_cross
   real(kind=8), dimension(num_wells), intent(out)     :: bounce_ave
   real(kind=8), dimension(:), allocatable             :: h_i, h_j, f_i, f_j, theta_i, theta_j
   real(kind=8)  :: inner, left, right, h_l, h_r, y_l, y_r
@@ -63,6 +63,9 @@ subroutine bounce_average(h_arr,b_arr,theta_arr,lam,num_wells,bounce_idx, &
       theta_j = theta_arr((2):(r_idx(do_idx)  ))
       CALL inner_bounce_trapz(N_alloc,h_i,h_j,f_i,f_j,theta_i,theta_j,y_r)
       inner = y_l + y_r
+
+
+
     ! otherwise business as usual
     ELSE
       ! print *,'well does not cross periodicity boundary'
@@ -81,34 +84,23 @@ subroutine bounce_average(h_arr,b_arr,theta_arr,lam,num_wells,bounce_idx, &
     END IF
 
     ! Now do the edge integrals
+    h_l = h_arr(l_idx(do_idx)) + (l_cross(do_idx) - &
+          theta_arr(l_idx(do_idx)))/(theta_arr(l_idx(do_idx)+1) - &
+          theta_arr(l_idx(do_idx) )) * ( h_arr(l_idx(do_idx)+1) - &
+          h_arr(l_idx(do_idx)) )
+    CALL left_bounce_trapz(h_l,h_arr(l_idx(do_idx)+1),0.0, &
+                           f_arr(l_idx(do_idx)+1),l_cross(do_idx), &
+                           theta_arr(l_idx(do_idx)+1),left)
 
-    ! check if left point is at the discont. boundary
-    IF (l_idx(do_idx) .EQ. 0) THEN
-      left = 0.0
-    ! otherwise do the left int as usual
-    ELSE
-      h_l = h_arr(l_idx(do_idx)) + (l_cross(do_idx) - &
-            theta_arr(l_idx(do_idx)))/(theta_arr(l_idx(do_idx)+1) - &
-            theta_arr(l_idx(do_idx) )) * ( h_arr(l_idx(do_idx)+1) - &
-            h_arr(l_idx(do_idx)) )
-      CALL left_bounce_trapz(h_l,h_arr(l_idx(do_idx)+1),0.0, &
-                             f_arr(l_idx(do_idx)+1),l_cross(do_idx), &
-                             theta_arr(l_idx(do_idx)+1),left)
-    END IF
 
-    ! check if right point is at the discont. boundary
-    IF (r_idx(do_idx) .EQ. SIZE(theta_arr)) THEN
-      right = 0.0
-    ! otherwise do the right int as usual
-    ELSE
-      h_r = h_arr(r_idx(do_idx)) + (r_cross(do_idx) - &
-            theta_arr(r_idx(do_idx)))/(theta_arr(r_idx(do_idx)+1) - &
-            theta_arr(r_idx(do_idx) )) * ( h_arr(r_idx(do_idx)+1) - &
-            h_arr(r_idx(do_idx)) )
-      CALL right_bounce_trapz(h_arr(r_idx(do_idx)),h_r,f_arr(r_idx(do_idx)), &
-                              0.0,theta_arr(r_idx(do_idx)),r_cross(do_idx), &
-                              right)
-    END IF
+    h_r = h_arr(r_idx(do_idx)) + (r_cross(do_idx) - &
+          theta_arr(r_idx(do_idx)))/(theta_arr(r_idx(do_idx)+1) - &
+          theta_arr(r_idx(do_idx) )) * ( h_arr(r_idx(do_idx)+1) - &
+          h_arr(r_idx(do_idx)) )
+    CALL right_bounce_trapz(h_arr(r_idx(do_idx)),h_r,f_arr(r_idx(do_idx)), &
+                            0.0,theta_arr(r_idx(do_idx)),r_cross(do_idx), &
+                            right)
+
     ! finally, fill in full integral!
     ! print *,'left, inner, right =',left,inner,right
     bounce_ave(do_idx)= left + inner + right

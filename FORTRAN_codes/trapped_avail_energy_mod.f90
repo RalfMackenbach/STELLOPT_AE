@@ -84,9 +84,10 @@
          y = (/((i*a)/(N-1),i=0,N-1)/) ! assign to y an array for theta [0,a]
          ! print *,y
 
+
          CALL compute_AE(N,g11,g12,g22,Bhat_array,abs_jac,L1,L2,dBdt, &
                       n_pol, my_dpdx, q0, shat, 1.0D0, 0.0D0, &
-                      1D-4, 4.0D+1, 10000, 10000, AE_tot)
+                      1D-4, 4.0D+1, 10000, 100, 1D-10, AE_tot)
 
          RETURN
       !-----------------------------------------------------------------
@@ -97,7 +98,7 @@
 
        SUBROUTINE compute_AE(N_arr,g11,g12,g22,Bhat,abs_jac,L1,L2,dBdt, &
                       n_pol, my_dpdx, q0, shat, omn, omt, &
-                      z_min, z_max, z_res, lam_res, AE_tot)
+                      z_min, z_max, z_res, lam_res, Delta_t, AE_tot)
           IMPLICIT NONE
       !-----------------------------------------------------------------
       !        Subroutine Input Variables
@@ -106,10 +107,10 @@
       !           g22      g_theta-theta GIST Array
       !           Bhat     Normalized magnetic field Array
       !           abs_jac  Normalized Jacobian
-      !           L1  
-      !           L2  
+      !           L1
+      !           L2
       !           dBdt     dB/dtheta Array
-      !           n_pol    Polidal Turns (usually 1)
+      !           n_pol    Poloidal Turns (usually 1)
       !           my_dpdx  Normalized pressure gradient
       !           q0       1/iota
       !           shat     Normalized radial coordinate
@@ -119,11 +120,12 @@
       !           z_max    Maximum normalized Energy (40)
       !           z_res    Resolution of Integration Range (10000)
       !           lam_res  Resolution of Pitch Angle Integration (10000)
+      !           Delta_t  Padding for periodicity boundary condition (1E-10)
       !           AE_tot :     Total Free Energy.
       !-----------------------------------------------------------------
           integer, intent(in)                       :: N_arr, n_pol, z_res, lam_res
           real(kind=8), intent(in)                  :: my_dpdx, q0, shat, omn, omt
-          real(kind=8), intent(in)                  :: z_min, z_max
+          real(kind=8), intent(in)                  :: z_min, z_max, Delta_t
           real(kind=8), dimension(N_arr), intent(in):: g11, g12, g22, Bhat, abs_jac, L2, L1, dBdt
           real(kind=8), intent(out)                 :: AE_tot
       !-----------------------------------------------------------------
@@ -161,7 +163,7 @@
 
           CALL AE_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,Bhat/B_ave, &
             L1/B_ave,L2/B_ave,sqrt_g,y,lam_res,z_res, &
-            z_min,z_max,N,L_tot,AE_tot)
+            z_min,z_max,Delta_t,N,L_tot,AE_tot)
 
          RETURN
       !-----------------------------------------------------------------

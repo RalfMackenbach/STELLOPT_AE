@@ -1,10 +1,12 @@
 ! Calculate total AE
 subroutine AE_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr, &
-                    sqrtg_arr,theta_arr,lam_res,z_res,z_min,z_max,N,L_tot,AE_tot)
+                    sqrtg_arr,theta_arr,lam_res,z_res,z_min,z_max,Delta_theta, &
+                    N,L_tot,AE_tot)
   implicit none
   integer, intent(in)                   :: N
-  real(kind=8), intent(in)              :: q0, dlnTdx, dlnndx, Delta_x, Delta_y, z_min, z_max, L_tot
+  real(kind=8), intent(in)              :: q0, dlnTdx, dlnndx, Delta_x, Delta_y, z_min, z_max, L_tot, Delta_theta
   real(kind=8), dimension(N), intent(in):: b_arr, dbdx_arr, dbdy_arr, sqrtg_arr, theta_arr
+  real(kind=8), dimension(N+1)          :: b_arr_p, dbdx_arr_p, dbdy_arr_p, sqrtg_arr_p, theta_arr_p
   integer, intent(in)                   :: lam_res, z_res
   real(kind=8), dimension(:),allocatable:: z_arr, lam_arr, w_psi_arr, w_alpha_arr, G_arr, AE_per_lam, AE_over_z
   integer                               :: lam_idx, z_idx, num_cross, num_wells, i
@@ -17,6 +19,12 @@ subroutine AE_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr, &
 
   ! Allocate arrays
   allocate(z_arr(z_res),AE_over_z(z_res),lam_arr(lam_res),AE_per_lam(lam_res))
+
+
+  ! Make various arrays periodic (append first index to end)
+  call make_per(N,Delta_theta,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr, &
+                      b_arr_p, dbdx_arr_p, dbdy_arr_p, sqrtg_arr_p, theta_arr_p)
+
 
   ! Find min and max values of lambda
   lam_min = 1/(MAXVAL(b_arr))
@@ -39,21 +47,20 @@ subroutine AE_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr, &
     lam_val = lam_arr(lam_idx)
 
     ! Count the number of zero crossings
-    call zero_cross_count(1.0 - lam_val*b_arr,N,num_cross)
+    call zero_cross_count(1.0 - lam_val*b_arr_p,size(b_arr_p),num_cross)
     ! Allocate the bounce arrays
     allocate(bounce_arr(num_cross/2,2),bounce_idx(num_cross/2,2))
     ! Find the bounce well indices and crossings
-    call bounce_wells(b_arr,theta_arr,lam_val,N,num_cross,bounce_arr,bounce_idx)
-
+    call bounce_wells(b_arr_p,theta_arr_p,lam_val,size(b_arr_p),num_cross,bounce_arr,bounce_idx)
 
     ! Number of wells should be number of crossings divides by 2
     num_wells = num_cross / 2
     ! Allocate the drifts arrays
     allocate(w_psi_arr(num_wells),w_alpha_arr(num_wells),G_arr(num_wells))
     ! Make drift arrays
-    call w_bounce(q0,L_tot,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam_val, &
+    call w_bounce(q0,L_tot,b_arr_p,dbdx_arr_p,dbdy_arr_p,sqrtg_arr_p,theta_arr_p,lam_val, &
                   Delta_x,Delta_y,num_wells,w_psi_arr,w_alpha_arr,G_arr, &
-                  N,bounce_idx,bounce_arr)
+                  size(b_arr_p),bounce_idx,bounce_arr)
     ! print *,w_psi_arr,w_alpha_arr,G_arr
     ! print *,'lam = ',lam_val,'w_alp = ',w_alpha_arr,'G = ',G_arr
     ! print *,lam_val,w_psi_arr,w_alpha_arr,G_arr
