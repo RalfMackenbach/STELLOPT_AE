@@ -87,8 +87,8 @@
 
 
          CALL compute_AE(N,g11,g12,g22,Bhat_array,abs_jac,L1,L2,dBdt, &
-                      n_pol, my_dpdx, q0, shat, 1.0D0, 0.0D0, &
-                      1D-4, 4.0D+1, 10000, 10000, 1D-10, AE_tot)
+                      n_pol, my_dpdx, q0, shat, 3.0D0, 0.0D0, &
+                      1D-4, 1.0D+1, 10000, 10000, 1D-10, AE_tot)
 
          RETURN
       !-----------------------------------------------------------------
