@@ -19,6 +19,11 @@
       INTEGER, PRIVATE      :: z_res, lam_res
       REAL(KIND=8), PRIVATE :: omn, omt, z_min, z_max, Delta_t
 
+
+      NAMELIST /AVAIL_ENERGY_OPTIONS/ omn, omt, z_min, z_max, Delta_t, z_res, lam_res
+
+      PRIVATE :: AVAIL_ENERGY_OPTIONS
+
 !-----------------------------------------------------------------------
 !     Private Subroutines
 !-----------------------------------------------------------------------
@@ -182,10 +187,6 @@
          INTEGER, intent(INOUT)  :: iunit
          INTEGER, intent(OUT)    :: ier
       !-----------------------------------------------------------------
-      !        Subroutine Variables
-      !-----------------------------------------------------------------
-         namelist /AVAIL_ENERGY_OPTIONS/ omn, omt, z_min, z_max, Delta_t, z_res, lam_res
-      !-----------------------------------------------------------------
       !        Begin Subroutine
       !-----------------------------------------------------------------
          ! Defaults
@@ -204,5 +205,33 @@
 
          RETURN
       END SUBROUTINE read_avail_energy_nml
+
+      SUBROUTINE write_avail_energy_nml(iunit,ier)
+        IMPLICIT NONE
+      !-----------------------------------------------------------------
+      !        Subroutine Input Variables
+      !           iunit :  File unit number.
+      !           ier :    Error flag
+      !-----------------------------------------------------------------
+         INTEGER, intent(INOUT)  :: iunit
+         INTEGER, intent(OUT)    :: ier
+      !-----------------------------------------------------------------
+      !        Subroutine Variables
+      !-----------------------------------------------------------------
+      !-----------------------------------------------------------------
+      !        Begin Subroutine
+      !-----------------------------------------------------------------
+         WRITE(iunit,'(A)') '&AVAIL_ENERGY_OPTIONS'
+         WRITE(iunit,'(2X,A,D20.10)') 'OMN = ',omn
+         WRITE(iunit,'(2X,A,D20.10)') 'OMT = ',omt
+         WRITE(iunit,'(2X,A,D20.10)') 'Z_MIN = ',z_min
+         WRITE(iunit,'(2X,A,D20.10)') 'Z_MAX = ',z_max
+         WRITE(iunit,'(2X,A,I7)')     'Z_RES = ',z_res
+         WRITE(iunit,'(2X,A,I7)')     'LAM_RES = ',lam_res
+         WRITE(iunit,'(2X,A,D20.10)') 'DELTA_T = ',Delta_t
+         WRITE(iunit,'(A)') '/'
+
+         RETURN
+      END SUBROUTINE write_avail_energy_nml
 
       END MODULE trapped_avail_energy_mod
