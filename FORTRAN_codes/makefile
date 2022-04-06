@@ -10,8 +10,7 @@ AR=ar -ruvs
 #LDFLAGS=
 #AR=ar -ruvs
 
-OBJ=AE_proxy.o\
-trapped_avail_energy_mod.o  \
+OBJ=AE_proxy.o \
 make_periodic.o \
 bounce_wells.o \
 inner_bounce_trapz.o \
@@ -24,7 +23,15 @@ zero_cross_count.o \
 bounce_average.o \
 AE_total.o \
 AE_integrand.o \
+trapped_avail_energy_mod.o 
 
+.PHONY: clean run
+
+# Default to makeing libtrap
+libtrapAE.a: $(OBJ)
+	$(AR) $@ $(OBJ)
+
+AE_proxy.o : trapped_avail_energy_mod.o
 
 %.o: %.f90
 	$(FC) -c -o $@ $< $(FFLAGS)
@@ -32,11 +39,8 @@ AE_integrand.o \
 xaeproxy: $(OBJ)
 	$(FC) -o $@ $^ $(LDFLAGS) $(LIBS)
 
-libtrapAE.a: $(OBJ)
-	$(AR) $@ $(OBJ)
-
 run: xaeproxy
 	@./xaeproxy
 
 clean:
-	@rm -rf *.o xaeproxy
+	@rm -rf *.o xaeproxy libtrapAE.a
