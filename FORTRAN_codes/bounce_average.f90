@@ -1,5 +1,8 @@
-
 ! calculate bounce average
+! Given a quantity h, this calculates
+! Integral ∫dx h(x)/sqrt(f(x)), between the bounce points
+
+
 subroutine bounce_average(h_arr,b_arr,theta_arr,lam,num_wells,bounce_idx, &
                           bounce_arr,bounce_ave,N)
   ! Calculates the bounce averaged precession frequencies for all bounce wells

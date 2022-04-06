@@ -2,6 +2,10 @@
 
 
 ! find bounce wells
+! This routine calculates the bounce points and turns them into bounce wells.
+
+
+
 subroutine bounce_wells(b_arr,theta_arr,lam_val,N,num_cross,bounce_arr,bounce_idx)
   ! Constructs an array of bounce wells.  Structure is as follows
   ! bounce_arr [x_idx_l, x_idx_r, x_val_l, x_val_r]. Each row corresponds
@@ -30,7 +34,7 @@ subroutine bounce_wells(b_arr,theta_arr,lam_val,N,num_cross,bounce_arr,bounce_id
   ! print *,''
 
 
-  
+
   ! Check if even number of wells
   IF (MOD(num_cross,2).NE.0) THEN
     print *,'ERROR: Odd number of well crossings, please adjust lambda resolution'

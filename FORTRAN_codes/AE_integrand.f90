@@ -1,4 +1,4 @@
-! integrand of AE
+! integrand of AE as in paper ( https://arxiv.org/pdf/2109.01042.pdf )
 subroutine AE_integrand(num_wells,dlnTdx,dlnndx,Delta_x,z,walpha,wpsi,G,AE)
   ! Given array of w_alpha, w_psi, and G (decided by lambda), and w_dia and z
   ! return the AE integrand at that (lambda,z).

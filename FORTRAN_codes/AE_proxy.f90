@@ -128,6 +128,11 @@ program debug_SAL
   USE trapped_avail_energy_mod
   real(kind=8) :: AE_tot
   CHARACTER(256) :: filename
+
+  filename='gist_files/gist_D3D.txt'
+  CALL compute_AE_GIST(filename,AE_tot)
+  print *,AE_tot
+
   filename='gist_files/gist_STELLOPT.txt'
   CALL compute_AE_GIST(filename,AE_tot)
   print *,AE_tot
