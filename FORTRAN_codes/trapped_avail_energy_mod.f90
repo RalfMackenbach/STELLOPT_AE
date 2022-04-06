@@ -188,18 +188,18 @@
       !        Begin Subroutine
       !-----------------------------------------------------------------
          ! Defaults
-         omn = 1.0
-         omt = 0.0
-         z_min = 1D-4
-         z_max = 4D+1
+         omn = 1.0D0
+         omt = 0.0D0
+         z_min = 1.0D-4
+         z_max = 4.0D+1
          Delta_t = 1D-10
          z_res   = 10000
          lam_res = 10000
          ier     = 0
 
          ! Read the Namelist
-         READ(iunit, NML=AVAIL_ENERGY_OPTIONS, IOSTAT=ier)
-         IF (ier .ne. 0) REWIND(iunit)
+         !READ(iunit, NML=AVAIL_ENERGY_OPTIONS, IOSTAT=ier)
+         !REWIND(iunit)
 
          RETURN
       END SUBROUTINE read_avail_energy_nml
