@@ -16,7 +16,8 @@
 !     Module Variables
 !-----------------------------------------------------------------------
       IMPLICIT NONE
-      REAL(KIND=8), PRIVATE :: omn, omt, z_min, z_max, Delta_t, lam_res, z_res
+      INTEGER, PRIVATE      :: z_res, lam_res
+      REAL(KIND=8), PRIVATE :: omn, omt, z_min, z_max, Delta_t
 
 !-----------------------------------------------------------------------
 !     Private Subroutines
@@ -188,7 +189,7 @@
       !        Begin Subroutine
       !-----------------------------------------------------------------
          ! Defaults
-         omn = 1.0D0
+         omn = 3.0D0
          omt = 0.0D0
          z_min = 1.0D-4
          z_max = 4.0D+1
@@ -198,8 +199,8 @@
          ier     = 0
 
          ! Read the Namelist
-         !READ(iunit, NML=AVAIL_ENERGY_OPTIONS, IOSTAT=ier)
-         !REWIND(iunit)
+         READ(iunit, NML=AVAIL_ENERGY_OPTIONS, IOSTAT=ier)
+         REWIND(iunit)
 
          RETURN
       END SUBROUTINE read_avail_energy_nml
