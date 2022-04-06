@@ -15,15 +15,16 @@
 !     Module Variables
 !-----------------------------------------------------------------------
       IMPLICIT NONE
+      REAL(KIND=8), PRIVATE :: omn, omt, z_min, z_max, Delta_t, lam_res, z_res
 
 !-----------------------------------------------------------------------
 !     Private Subroutines
 !-----------------------------------------------------------------------
+      CONTAINS
 
 !-----------------------------------------------------------------------
 !     Public Subroutines
 !-----------------------------------------------------------------------
-      CONTAINS
 
       SUBROUTINE compute_AE_GIST(gist_file,AE_tot)
          IMPLICIT NONE
@@ -43,8 +44,8 @@
          integer                                   :: gridpoints, n_pol, iunit, i, ialpha, N
          real(kind=8)                              :: my_dpdx, q0, shat, Delta_x, Delta_y
          real(kind=8), dimension(:), allocatable   :: y
-         real(kind=8)                              :: z_min, z_max, dlnndx, dlnTdx
-         real(kind=8)                              :: a, pi, B_ave, r1, r2, L_tot, omn, omt
+         real(kind=8)                              :: dlnndx, dlnTdx
+         real(kind=8)                              :: a, pi, B_ave, r1, r2, L_tot
 
          ! GIST/GENE namelist
          namelist /PARAMETERS/ my_dpdx, q0, shat, gridpoints, n_pol
@@ -58,6 +59,7 @@
 
          OPEN(UNIT=iunit, FILE=TRIM(gist_file))
          !!!!! READING DATA !!!!!
+         CALL read_avail_energy_nml(iunit,i)
          READ(iunit,NML=PARAMETERS)
          allocate(g11(1,gridpoints), g12(1,gridpoints), g22(1,gridpoints),  &
                   Bhat(1,gridpoints), abs_jac(1,gridpoints), L2(1,gridpoints), &
@@ -86,8 +88,7 @@
 
 
          CALL compute_AE(N,g11,g12,g22,Bhat_array,abs_jac,L1,L2,dBdt, &
-                      n_pol, my_dpdx, q0, shat, 1.0D0, 0.0D0, &
-                      1D-4, 4.0D+1, 10000, 10000, 1D-10, AE_tot)
+                      n_pol, my_dpdx, q0, shat, AE_tot)
 
          RETURN
       !-----------------------------------------------------------------
@@ -97,8 +98,7 @@
 
 
        SUBROUTINE compute_AE(N_arr,g11,g12,g22,Bhat,abs_jac,L1,L2,dBdt, &
-                      n_pol, my_dpdx, q0, shat, omn, omt, &
-                      z_min, z_max, z_res, lam_res, Delta_t, AE_tot)
+                      n_pol, my_dpdx, q0, shat, AE_tot)
           IMPLICIT NONE
       !-----------------------------------------------------------------
       !        Subroutine Input Variables
@@ -123,9 +123,8 @@
       !           Delta_t  Padding for periodicity boundary condition (1E-10)
       !           AE_tot :     Total Free Energy.
       !-----------------------------------------------------------------
-          integer, intent(in)                       :: N_arr, n_pol, z_res, lam_res
-          real(kind=8), intent(in)                  :: my_dpdx, q0, shat, omn, omt
-          real(kind=8), intent(in)                  :: z_min, z_max, Delta_t
+          integer, intent(in)                       :: N_arr, n_pol
+          real(kind=8), intent(in)                  :: my_dpdx, q0, shat
           real(kind=8), dimension(N_arr), intent(in):: g11, g12, g22, Bhat, abs_jac, L2, L1, dBdt
           real(kind=8), intent(out)                 :: AE_tot
       !-----------------------------------------------------------------
@@ -170,5 +169,38 @@
       !        End Subroutine
       !-----------------------------------------------------------------
         END SUBROUTINE compute_AE
+
+      SUBROUTINE read_avail_energy_nml(iunit,ier)
+        IMPLICIT NONE
+      !-----------------------------------------------------------------
+      !        Subroutine Input Variables
+      !           iunit :  File unit number.
+      !           ier :    Error flag
+      !-----------------------------------------------------------------
+         INTEGER, intent(INOUT)  :: iunit
+         INTEGER, intent(OUT)    :: ier
+      !-----------------------------------------------------------------
+      !        Subroutine Variables
+      !-----------------------------------------------------------------
+         namelist /AVAIL_ENERGY_OPTIONS/ omn, omt, z_min, z_max, Delta_t, z_res, lam_res
+      !-----------------------------------------------------------------
+      !        Begin Subroutine
+      !-----------------------------------------------------------------
+         ! Defaults
+         omn = 1.0
+         omt = 0.0
+         z_min = 1D-4
+         z_max = 4D+1
+         Delta_t = 1D-10
+         z_res   = 10000
+         lam_res = 10000
+         ier     = 0
+
+         ! Read the Namelist
+         READ(iunit, NML=AVAIL_ENERGY_OPTIONS, IOSTAT=ier)
+         IF (ier .ne. 0) REWIND(iunit)
+
+         RETURN
+      END SUBROUTINE read_avail_energy_nml
 
       END MODULE trapped_avail_energy_mod
