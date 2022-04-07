@@ -5,4 +5,6 @@ You may need to edit the FC and FLAGS variable in the makefile to build on your 
 
 make : compile all .f90 files and then link them into an executable.
 
+make run: runs a few example cases.
+
 make clean : will remove all temporary files.
