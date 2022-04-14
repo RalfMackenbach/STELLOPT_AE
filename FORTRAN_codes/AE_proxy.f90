@@ -133,15 +133,15 @@ program debug_SAL
   CALL compute_AE_GIST(filename,AE_tot)
   print *,AE_tot
 
-  filename='gist_files/gist_STELLOPT.txt'
-  CALL compute_AE_GIST(filename,AE_tot)
-  print *,AE_tot
-
   filename='gist_files/gist_HSX.txt'
   CALL compute_AE_GIST(filename,AE_tot)
   print *,AE_tot
 
   filename='gist_files/gist_NCSX.txt'
+  CALL compute_AE_GIST(filename,AE_tot)
+  print *,AE_tot
+
+  filename='gist_files/gist_STELLOPT.txt'
   CALL compute_AE_GIST(filename,AE_tot)
   print *,AE_tot
 

@@ -190,13 +190,13 @@
       !        Begin Subroutine
       !-----------------------------------------------------------------
          ! Defaults
-         omn = 3.0D0
+         omn = 4.0D0
          omt = 0.0D0
          z_min = 1.0D-4
          z_max = 4.0D+1
          Delta_t = 1D-10
-         z_res   = 10000
-         lam_res = 10000
+         z_res   = 1000
+         lam_res = 1000
          ier     = 0
 
          ! Read the Namelist

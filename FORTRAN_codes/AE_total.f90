@@ -65,7 +65,7 @@ subroutine AE_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr, &
     call w_bounce(q0,L_tot,b_arr_p,dbdx_arr_p,dbdy_arr_p,sqrtg_arr_p,theta_arr_p,lam_val, &
                   Delta_x,Delta_y,num_wells,w_psi_arr,w_alpha_arr,G_arr, &
                   size(b_arr_p),bounce_idx,bounce_arr)
-    ! print *,w_psi_arr,w_alpha_arr,G_arr
+    ! print *,lam_val,G_arr
     ! print *,'lam = ',lam_val,'w_alp = ',w_alpha_arr,'G = ',G_arr
     ! print *,lam_val,w_psi_arr,w_alpha_arr,G_arr
 
