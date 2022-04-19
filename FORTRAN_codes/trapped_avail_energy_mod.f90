@@ -45,8 +45,8 @@
       !-----------------------------------------------------------------
       !        Subroutine Variables
       !-----------------------------------------------------------------
-         real(kind=8), dimension(:,:),allocatable  :: g11, g12, g22, Bhat, abs_jac, L2, L1, dBdt, dummy
-         real(kind=8), dimension(:),  allocatable  :: Bhat_array, sqrtg_arr, L2_array, L1_array
+         real(kind=8), dimension(:,:),allocatable  :: g11, g12, g22, Bhat, abs_jac, dBdx, dBdy, dBdt, dummy
+         real(kind=8), dimension(:),  allocatable  :: Bhat_array, sqrtg_arr, dBdx_array, dBdy_array
 
          integer                                   :: gridpoints, n_pol, iunit, i, ialpha, N
          real(kind=8)                              :: my_dpdx, q0, shat, Delta_x, Delta_y
@@ -69,12 +69,12 @@
          CALL read_avail_energy_nml(iunit,i)
          READ(iunit,NML=PARAMETERS)
          allocate(g11(1,gridpoints), g12(1,gridpoints), g22(1,gridpoints),  &
-                  Bhat(1,gridpoints), abs_jac(1,gridpoints), L2(1,gridpoints), &
-                  L1(1,gridpoints), dBdt(1,gridpoints), dummy(1,gridpoints))
+                  Bhat(1,gridpoints), abs_jac(1,gridpoints), dBdx(1,gridpoints), &
+                  dBdy(1,gridpoints), dBdt(1,gridpoints), dummy(1,gridpoints))
          DO i = 1, gridpoints
             READ(iunit,"(9ES20.10)") g11(ialpha,i),g12(ialpha,i),g22(ialpha,i),&
-                                     Bhat(ialpha,i),abs_jac(ialpha,i),L2(ialpha,i),&
-                                     L1(ialpha,i),dBdt(ialpha,i), dummy(ialpha,i)
+                                     Bhat(ialpha,i),abs_jac(ialpha,i),dBdx(ialpha,i),&
+                                     dBdy(ialpha,i),dBdt(ialpha,i), dummy(ialpha,i)
          END DO
          CLOSE(iunit)
 
@@ -84,17 +84,17 @@
          N = size(Bhat)
 
          ! allocate data
-         allocate(y(N),Bhat_array(N),L1_array(N),L2_array(N),sqrtg_arr(N))
+         allocate(y(N),Bhat_array(N),dBdx_array(N),dBdy_array(N),sqrtg_arr(N))
          ! Reshape arrays
          Bhat_array    = reshape(Bhat(1,:),    shape(Bhat_array))
-         L1_array      = reshape(L1(1,:),      shape(Bhat_array))
-         L2_array      = reshape(L2(1,:),      shape(Bhat_array))
+         dBdx_array    = reshape(dBdx(1,:),    shape(Bhat_array))
+         dBdy_array    = reshape(dBdy(1,:),    shape(Bhat_array))
          sqrtg_arr = 1.0/reshape(abs_jac(1,:), shape(Bhat_array))
          y = (/((i*a)/(N-1),i=0,N-1)/) ! assign to y an array for theta [0,a]
          ! print *,y
 
 
-         CALL compute_AE(N,g11,g12,g22,Bhat_array,abs_jac,L2,L1,dBdt, &
+         CALL compute_AE(N,g11,g12,g22,Bhat_array,abs_jac,dBdx_array,dBdy_array,dBdt, &
                       n_pol, my_dpdx, q0, shat, AE_tot)
 
          RETURN
@@ -104,7 +104,7 @@
        end subroutine compute_AE_GIST
 
 
-       SUBROUTINE compute_AE(N_arr,g11,g12,g22,Bhat,abs_jac,L1,L2,dBdt, &
+       SUBROUTINE compute_AE(N_arr,g11,g12,g22,Bhat,abs_jac,dBdx,dBdy,dBdt, &
                       n_pol, my_dpdx, q0, shat, AE_tot)
           IMPLICIT NONE
       !-----------------------------------------------------------------
@@ -132,7 +132,7 @@
       !-----------------------------------------------------------------
           integer, intent(in)                       :: N_arr, n_pol
           real(kind=8), intent(in)                  :: my_dpdx, q0, shat
-          real(kind=8), dimension(N_arr), intent(in):: g11, g12, g22, Bhat, abs_jac, L2, L1, dBdt
+          real(kind=8), dimension(N_arr), intent(in):: g11, g12, g22, Bhat, abs_jac, dBdx, dBdy, dBdt
           real(kind=8), intent(out)                 :: AE_tot
       !-----------------------------------------------------------------
       !        Subroutine Variables
@@ -168,7 +168,7 @@
 
 
           CALL AE_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,Bhat/B_ave, &
-            L1/B_ave,L2/B_ave,sqrt_g,y,lam_res,z_res, &
+            dBdx/B_ave,dBdy/B_ave,sqrt_g,y,lam_res,z_res, &
             z_min,z_max,Delta_t,N,L_tot,AE_tot)
 
          RETURN
