@@ -94,7 +94,7 @@
          ! print *,y
 
 
-         CALL compute_AE(N,g11,g12,g22,Bhat_array,abs_jac,L1,L2,dBdt, &
+         CALL compute_AE(N,g11,g12,g22,Bhat_array,abs_jac,L2,L1,dBdt, &
                       n_pol, my_dpdx, q0, shat, AE_tot)
 
          RETURN

@@ -3,6 +3,7 @@ import  AE_routines     as  ae
 import  re
 import  numpy as np
 
+
 class gist:
     def __init__(self, path_to_file):
         self.nml = f90nml.read(path_to_file)
@@ -38,8 +39,8 @@ def compute_ae_gist(gist_class,omn,omt):
     theta_arr   = np.linspace(0.0, n_pol*2*np.pi, gridpoints)
     B           = gist_class.functions[:,3]
     jac         = gist_class.functions[:,4]
-    dBdx        = gist_class.functions[:,6]
-    dBdy        = gist_class.functions[:,5]
+    dBdx        = gist_class.functions[:,5]
+    dBdy        = gist_class.functions[:,6]
     sqrt_g      = 1/jac
     Delta_x     = q0
     Delta_y     = q0
@@ -59,9 +60,8 @@ def compute_ae_gist(gist_class,omn,omt):
     z_res = 1000
     lam_res = 1000
     Delta_theta = 1e-10
-    return ae.ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrt_g,theta_arr,lam_res,z_res,z_min,z_max,Delta_theta,L_tot)
-
-
+    ae_val = ae.ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrt_g,theta_arr,lam_res,z_res,z_min,z_max,Delta_theta,L_tot)
+    return ae_val
 
 # import all gist classes
 path = '/Users/ralfmackenbach/Documents/GitHub/STELLOPT_AE/python_codes/gist_files/'
