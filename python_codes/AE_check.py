@@ -69,7 +69,8 @@ def compute_ae_gist(gist_class,omn,omt):
     z_res = 1000
     lam_res = 1000
     Delta_theta = 1e-10
-    ae_val = ae.ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrt_g,theta_arr,lam_res,z_res,z_min,z_max,Delta_theta,L_tot)
+    del_sing = 1e-2
+    ae_val = ae.ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrt_g,theta_arr,lam_res,z_res,z_min,z_max,Delta_theta,del_sing,L_tot)
     return ae_val
 
 

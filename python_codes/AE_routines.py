@@ -2,6 +2,7 @@
 # Energy of trapped particles. Based on fortran implementation
 import  numpy as        np
 from    numba import    jit
+from    scipy.signal import    find_peaks
 
 
 @jit
@@ -255,7 +256,41 @@ def make_per(b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,Delta_theta):
 
 
 
-def ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam_res,z_res,z_min,z_max,Delta_theta,L_tot):
+def lambda_filtered(lambda_arr,B_arr,delta_lambda):
+    """
+        Returns filtered array, where all values in
+        lambda arr which lie within delta_lambda*range(beta)
+        are deleted.
+
+        lambda_arr      - array with lambda values
+        B_arr           - array with B values
+        delta_lambda    - the singularity padding
+    """
+    #make new container
+    lambda_arr_new  = lambda_arr
+    # find idx of local maxima of beta arrays
+    B_max_idx       = find_peaks(B_arr)[0]
+    # Find corresponding beta vals and lambda vals
+    B_local_max  = np.asarray([B_arr[i] for i in B_max_idx])
+    lamdba_inf      = 1.0 / ( 1.0 + B_local_max )
+    # construct range(lambda)
+    max_beta    = np.amax(B_arr)
+    min_beta    = np.amin(B_arr)
+    lambda_max  = 1.0/(1.0+min_beta)
+    lambda_min  = 1.0/(1.0+max_beta)
+    lambda_range= lambda_max-lambda_min
+    # loop over lambda inf and delete lambdas within singularity padding
+    for lambda_inf_val in lamdba_inf:
+        lower_bound         =   lambda_inf_val - delta_lambda*lambda_range
+        upper_bound         =   lambda_inf_val + delta_lambda*lambda_range
+        lambda_delete_idx   =   np.where(np.logical_and(lambda_arr_new>=lower_bound, lambda_arr_new<=upper_bound))
+        lambda_arr_new      =   np.delete(lambda_arr_new, lambda_delete_idx)
+
+    return lambda_arr_new
+
+
+
+def ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam_res,z_res,z_min,z_max,Delta_theta,del_sing,L_tot):
     # make arrays periodic
     b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr = make_per(b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,Delta_theta)
 
@@ -267,6 +302,7 @@ def ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,
     z_arr =   np.linspace(z_min,z_max,z_res)
     lam_arr = np.linspace(lam_min,lam_max,lam_res+1,endpoint=False)
     lam_arr = np.delete(lam_arr, 0)
+    lam_arr = lambda_filtered(lam_arr,b_arr,del_sing)
 
     # Loop over lambda indices
     ae_per_lam = np.empty(lam_res)
