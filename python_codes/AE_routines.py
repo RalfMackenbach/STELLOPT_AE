@@ -274,10 +274,10 @@ def lambda_filtered(lambda_arr,B_arr,delta_lambda):
     B_local_max  = np.asarray([B_arr[i] for i in B_max_idx])
     lamdba_inf      = 1.0 / ( 1.0 + B_local_max )
     # construct range(lambda)
-    max_beta    = np.amax(B_arr)
-    min_beta    = np.amin(B_arr)
-    lambda_max  = 1.0/(1.0+min_beta)
-    lambda_min  = 1.0/(1.0+max_beta)
+    max_B    = np.amax(B_arr)
+    min_B    = np.amin(B_arr)
+    lambda_max  = 1.0/(1.0+min_B)
+    lambda_min  = 1.0/(1.0+max_B)
     lambda_range= lambda_max-lambda_min
     # loop over lambda inf and delete lambdas within singularity padding
     for lambda_inf_val in lamdba_inf:
