@@ -100,8 +100,8 @@ def bounce_wells(theta_arr,b_arr,lam_val):
         zero_idx = np.roll(zero_idx,-1)
 
     # make array holding bounce well information
-    bounce_idx = np.empty([num_wells,2])
-    bounce_arr = np.empty([num_wells,2])
+    bounce_idx = np.empty([num_wells,2],np.float_)
+    bounce_arr = np.empty([num_wells,2],np.float_)
 
     # Fill up bounce array
     for  do_idx in range(0,num_wells):
@@ -131,7 +131,7 @@ def bounce_average(theta_arr,h_arr,b_arr,lam):
     """
     # Find the bounce wells
     bounce_idx, bounce_arr, num_wells = bounce_wells(theta_arr,b_arr,lam)
-    bounce_ave = np.empty(num_wells)
+    bounce_ave = np.empty(num_wells,np.float_)
     f_arr   = 1 - lam*b_arr
 
     l_idx   = bounce_idx[:,0]
