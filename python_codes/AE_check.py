@@ -67,7 +67,8 @@ def compute_ae_gist(gist_class,omn,omt):
 ################################ DO EXAMPLE CASE ###############################
 # If one expands AE in a weakly driven regime, one finds a square dependence on
 # the gradients. In a strongly driven regime, one expects a linear dependence.
-# Check if that is what you find! This picture changes for omnigenous devices...
+# Check if that is what you find! This picture changes for devices which have
+# omega_psi = 0
 
 path = 'gist_files/'
 omn_res=20
