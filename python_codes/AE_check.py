@@ -67,21 +67,53 @@ def compute_ae_gist(gist_class,omn,omt):
 ################################ DO EXAMPLE CASE ###############################
 # If one expands AE in a weakly driven regime, one finds a square dependence on
 # the gradients. In a strongly driven regime, one expects a linear dependence.
-# Check if that is what you find!
+# Check if that is what you find! This picture changes for omnigenous devices...
 
 path = 'gist_files/'
-omn_vals = np.logspace(-3,3,100)
-AE_list = []
+omn_res=20
+omn_hlf=int(omn_res/2)
+omn_vals = np.logspace(-3,3,omn_res)
+AE_W7X = []
+AE_D3D = []
+AE_HSX = []
+AE_NCSX= []
 
 for idx, omn in np.ndenumerate(omn_vals):
     file = 'gist_W7XSC.txt'
     path_to_file = path+file
     gist_class = gist(path_to_file)
     AE_val = compute_ae_gist(gist_class,omn,0.0)
-    AE_list = np.append(AE_list,AE_val)
+    AE_W7X = np.append(AE_W7X,AE_val)
+
+for idx, omn in np.ndenumerate(omn_vals):
+    file = 'gist_D3D.txt'
+    path_to_file = path+file
+    gist_class = gist(path_to_file)
+    AE_val = compute_ae_gist(gist_class,omn,0.0)
+    AE_D3D = np.append(AE_D3D,AE_val)
+
+for idx, omn in np.ndenumerate(omn_vals):
+    file = 'gist_HSX.txt'
+    path_to_file = path+file
+    gist_class = gist(path_to_file)
+    AE_val = compute_ae_gist(gist_class,omn,0.0)
+    AE_HSX = np.append(AE_HSX,AE_val)
+
+for idx, omn in np.ndenumerate(omn_vals):
+    file = 'gist_NCSX.txt'
+    path_to_file = path+file
+    gist_class = gist(path_to_file)
+    AE_val = compute_ae_gist(gist_class,omn,0.0)
+    AE_NCSX = np.append(AE_NCSX,AE_val)
 
 
-plt.loglog(omn_vals,AE_list)
+plt.loglog(omn_vals,AE_W7X, label='W7X')
+plt.loglog(omn_vals,AE_D3D, label='D3D')
+plt.loglog(omn_vals,AE_HSX, label='HSX')
+plt.loglog(omn_vals,AE_NCSX,label='NCSX')
+plt.loglog(omn_vals[0:(omn_hlf)],omn_vals[0:(omn_hlf)]**(2), label='square power law',linestyle='dashed',color='black')
+plt.loglog(omn_vals[(omn_hlf)::],omn_vals[(omn_hlf)::], label='linear law',linestyle='dashed',color='black')
+plt.legend()
 plt.xlabel('omn')
 plt.ylabel('available energy')
 plt.show()
