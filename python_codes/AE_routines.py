@@ -327,8 +327,8 @@ def ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,
     for lam_idx, lam_val in np.ndenumerate(lam_arr):
         w_psi_arr, w_alpha_arr, G_arr = w_bounce(q0,L_tot,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam_val,Delta_x,Delta_y)
         if omnigenous == True:
-            c0 = (dlnndx - 3/2 * dlnTdx) / w_alpha_arr
-            c1 = 1.0 + dlnTdx / w_alpha_arr
+            c0 = Delta_x * (dlnndx - 3/2 * dlnTdx) / w_alpha_arr
+            c1 = 1.0 - Delta_x * dlnTdx / w_alpha_arr
             ae_per_lam[lam_idx] = 3/4 * np.sqrt(np.pi) * np.sum((w_alpha_arr**2.0) * integral_over_z(c0,c1) * G_arr)
         elif omnigenous == False:
             ae_per_lam[lam_idx] = integrate.quad(lambda z: ae_integrand(w_alpha_arr,w_psi_arr,G_arr,dlnTdx,dlnndx,Delta_x,z), 0, np.inf)[0]
