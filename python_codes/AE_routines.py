@@ -308,6 +308,9 @@ def integral_over_z(c0,c1):
         return 0.
 
 
+vint = np.vectorize(integral_over_z, otypes=[np.float64])
+
+
 def ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam_res,Delta_theta,del_sing,L_tot,omnigenous=False):
 
     # make arrays periodic
@@ -329,7 +332,7 @@ def ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,
         if omnigenous == True:
             c0 = Delta_x * (dlnndx - 3/2 * dlnTdx) / w_alpha_arr
             c1 = 1.0 - Delta_x * dlnTdx / w_alpha_arr
-            ae_per_lam[lam_idx] = 3/4 * np.sqrt(np.pi) * np.sum((w_alpha_arr**2.0) * integral_over_z(c0,c1) * G_arr)
+            ae_per_lam[lam_idx] = 3/4 * np.sqrt(np.pi) * np.sum((w_alpha_arr**2.0) * vint(c0,c1) * G_arr)
         elif omnigenous == False:
             ae_per_lam[lam_idx] = integrate.quad(lambda z: ae_integrand(w_alpha_arr,w_psi_arr,G_arr,dlnTdx,dlnndx,Delta_x,z), 0, np.inf)[0]
 

@@ -70,7 +70,7 @@ def compute_ae_gist(gist_class,omn,omt,omnigenous):
 path = 'gist_files/'
 omn_res=100
 omn_hlf=int(omn_res/2)
-omn_vals = np.logspace(-5,4,omn_res)
+omn_vals = np.logspace(-6,6,omn_res)
 AE_W7X = []
 AE_D3D = []
 AE_HSX = []
