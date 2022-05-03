@@ -27,7 +27,7 @@ class gist:
 
 
 
-def compute_ae_gist(gist_class,omn,omt):
+def compute_ae_gist(gist_class,omn,omt,omnigenous):
     # import relevant parameters from gist class
     params = gist_class.nml['parameters']
     q0 = params['q0']
@@ -54,13 +54,10 @@ def compute_ae_gist(gist_class,omn,omt):
     L_tot  = np.trapz(q0*b_arr*sqrt_g,theta_arr)
 
     # set numerical parameters
-    z_min = 1e-4
-    z_max = 40
-    z_res = 1000
     lam_res = 1000
     Delta_theta = 1e-10
     del_sing = 0.0
-    ae_val = ae.ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrt_g,theta_arr,lam_res,z_res,z_min,z_max,Delta_theta,del_sing,L_tot)
+    ae_val = ae.ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrt_g,theta_arr,lam_res,Delta_theta,del_sing,L_tot,omnigenous)
     return ae_val
 
 
@@ -71,9 +68,9 @@ def compute_ae_gist(gist_class,omn,omt):
 # omega_psi = 0
 
 path = 'gist_files/'
-omn_res=20
+omn_res=100
 omn_hlf=int(omn_res/2)
-omn_vals = np.logspace(-3,3,omn_res)
+omn_vals = np.logspace(-5,4,omn_res)
 AE_W7X = []
 AE_D3D = []
 AE_HSX = []
@@ -83,28 +80,28 @@ for idx, omn in np.ndenumerate(omn_vals):
     file = 'gist_W7XSC.txt'
     path_to_file = path+file
     gist_class = gist(path_to_file)
-    AE_val = compute_ae_gist(gist_class,omn,0.0)
+    AE_val = compute_ae_gist(gist_class,omn,0.0,omnigenous=False)
     AE_W7X = np.append(AE_W7X,AE_val)
 
 for idx, omn in np.ndenumerate(omn_vals):
     file = 'gist_D3D.txt'
     path_to_file = path+file
     gist_class = gist(path_to_file)
-    AE_val = compute_ae_gist(gist_class,omn,0.0)
+    AE_val = compute_ae_gist(gist_class,omn,0.0,omnigenous=True)
     AE_D3D = np.append(AE_D3D,AE_val)
 
 for idx, omn in np.ndenumerate(omn_vals):
     file = 'gist_HSX.txt'
     path_to_file = path+file
     gist_class = gist(path_to_file)
-    AE_val = compute_ae_gist(gist_class,omn,0.0)
+    AE_val = compute_ae_gist(gist_class,omn,0.0,omnigenous=False)
     AE_HSX = np.append(AE_HSX,AE_val)
 
 for idx, omn in np.ndenumerate(omn_vals):
     file = 'gist_NCSX.txt'
     path_to_file = path+file
     gist_class = gist(path_to_file)
-    AE_val = compute_ae_gist(gist_class,omn,0.0)
+    AE_val = compute_ae_gist(gist_class,omn,0.0,omnigenous=False)
     AE_NCSX = np.append(AE_NCSX,AE_val)
 
 
@@ -112,8 +109,9 @@ plt.loglog(omn_vals,AE_W7X, label='W7X')
 plt.loglog(omn_vals,AE_D3D, label='D3D')
 plt.loglog(omn_vals,AE_HSX, label='HSX')
 plt.loglog(omn_vals,AE_NCSX,label='NCSX')
-plt.loglog(omn_vals[0:(omn_hlf)],omn_vals[0:(omn_hlf)]**(2), label='square power law',linestyle='dashed',color='black')
-plt.loglog(omn_vals[(omn_hlf)::],omn_vals[(omn_hlf)::], label='linear law',linestyle='dashed',color='black')
+plt.loglog(omn_vals[0:(omn_hlf)],omn_vals[0:(omn_hlf)]**(2), label='2-law',linestyle='dashed',color='black')
+plt.loglog(omn_vals[0:int((omn_hlf/2))],omn_vals[0:int((omn_hlf/2))]**(7/2)*10, label='7/2-law',linestyle='dashed',color='black')
+plt.loglog(omn_vals[(omn_hlf)::],omn_vals[(omn_hlf)::], label='1-law',linestyle='dashed',color='black')
 plt.legend()
 plt.xlabel('omn')
 plt.ylabel('available energy')

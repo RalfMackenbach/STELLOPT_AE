@@ -1,8 +1,10 @@
 # This file contains all subroutines used in the calculation of the Available
 # Energy of trapped particles. Based on fortran implementation
-import  numpy as        np
-from    numba import    jit
-from    scipy.signal import    find_peaks
+import  numpy           as      np
+from    numba           import  jit
+from    scipy.signal    import  find_peaks
+import  scipy.integrate as      integrate
+from    scipy           import  special
 
 
 @jit
@@ -290,7 +292,24 @@ def lambda_filtered(lambda_arr,B_arr,delta_lambda):
 
 
 
-def ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam_res,z_res,z_min,z_max,Delta_theta,del_sing,L_tot):
+
+# integral over z
+def integral_over_z(c0,c1):
+    """
+    Integral over normalized energies is analytical if omnigenous
+    """
+    if (c0>=0) and (c1<=0):
+        return 2 * c0 - 5 * c1
+    if (c0>=0) and (c1>0):
+        return (2 * c0 - 5 * c1) * special.erf(np.sqrt(c0/c1)) + 2 / (3 *np.sqrt(np.pi)) * ( 4 * c0 + 15 * c1 ) * np.sqrt(c0/c1) * np.exp( - c0/c1 )
+    if (c0<0)  and (c1<0):
+        return ( (2 * c0 - 5 * c1) * (1 - special.erf(np.sqrt(c0/c1))) - 2 / (3 *np.sqrt(np.pi)) * ( 4 * c0 + 15 * c1 ) * np.sqrt(c0/c1) * np.exp( - c0/c1 ) )
+    else:
+        return 0.
+
+
+def ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam_res,Delta_theta,del_sing,L_tot,omnigenous=False):
+
     # make arrays periodic
     b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr = make_per(b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,Delta_theta)
 
@@ -298,8 +317,7 @@ def ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,
     lam_min = 1.0/(np.amax(b_arr))
     lam_max = 1.0/(np.amin(b_arr))
 
-    # make arrays for normalized energy and lambda
-    z_arr =   np.linspace(z_min,z_max,z_res)
+    # make arrays for lambda
     lam_arr = np.linspace(lam_min,lam_max,lam_res+1,endpoint=False)
     lam_arr = np.delete(lam_arr, 0)
     lam_arr = lambda_filtered(lam_arr,b_arr,del_sing)
@@ -308,10 +326,12 @@ def ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,
     ae_per_lam = np.empty(lam_res)
     for lam_idx, lam_val in np.ndenumerate(lam_arr):
         w_psi_arr, w_alpha_arr, G_arr = w_bounce(q0,L_tot,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam_val,Delta_x,Delta_y)
-        ae_of_z = np.empty(z_res)
-        for z_idx, z_val in  np.ndenumerate(z_arr):
-            ae_of_z[z_idx] = ae_integrand(w_alpha_arr,w_psi_arr,G_arr,dlnTdx,dlnndx,Delta_x,z_val)
-        ae_per_lam[lam_idx] = np.trapz(ae_of_z,z_arr)
+        if omnigenous == True:
+            c0 = (dlnndx - 3/2 * dlnTdx) / w_alpha_arr
+            c1 = 1.0 + dlnTdx / w_alpha_arr
+            ae_per_lam[lam_idx] = 3/4 * np.sqrt(np.pi) * np.sum((w_alpha_arr**2.0) * integral_over_z(c0,c1) * G_arr)
+        elif omnigenous == False:
+            ae_per_lam[lam_idx] = integrate.quad(lambda z: ae_integrand(w_alpha_arr,w_psi_arr,G_arr,dlnTdx,dlnndx,Delta_x,z), 0, np.inf)[0]
 
     # calculate ae final
     ae = np.trapz(ae_per_lam,lam_arr)
