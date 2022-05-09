@@ -61,6 +61,8 @@ def compute_ae_gist(gist_class,omn,omt,omnigenous):
     return ae_val
 
 
+
+
 ################################ DO EXAMPLE CASE ###############################
 # If one expands AE in a weakly driven regime, one finds a square dependence on
 # the gradients. In a strongly driven regime, one expects a linear dependence.
@@ -71,6 +73,7 @@ path = 'gist_files/'
 omn_res=100
 omn_hlf=int(omn_res/2)
 omn_vals = np.logspace(-6,6,omn_res)
+eta = 0.0
 AE_W7X = []
 AE_D3D = []
 AE_HSX = []
@@ -80,28 +83,28 @@ for idx, omn in np.ndenumerate(omn_vals):
     file = 'gist_W7XSC.txt'
     path_to_file = path+file
     gist_class = gist(path_to_file)
-    AE_val = compute_ae_gist(gist_class,omn,0.0,omnigenous=False)
+    AE_val = compute_ae_gist(gist_class,omn,eta*omn,omnigenous=False)
     AE_W7X = np.append(AE_W7X,AE_val)
 
 for idx, omn in np.ndenumerate(omn_vals):
     file = 'gist_D3D.txt'
     path_to_file = path+file
     gist_class = gist(path_to_file)
-    AE_val = compute_ae_gist(gist_class,omn,0.0,omnigenous=True)
+    AE_val = compute_ae_gist(gist_class,omn,eta*omn,omnigenous=True)
     AE_D3D = np.append(AE_D3D,AE_val)
 
 for idx, omn in np.ndenumerate(omn_vals):
     file = 'gist_HSX.txt'
     path_to_file = path+file
     gist_class = gist(path_to_file)
-    AE_val = compute_ae_gist(gist_class,omn,0.0,omnigenous=False)
+    AE_val = compute_ae_gist(gist_class,omn,eta*omn,omnigenous=False)
     AE_HSX = np.append(AE_HSX,AE_val)
 
 for idx, omn in np.ndenumerate(omn_vals):
     file = 'gist_NCSX.txt'
     path_to_file = path+file
     gist_class = gist(path_to_file)
-    AE_val = compute_ae_gist(gist_class,omn,0.0,omnigenous=False)
+    AE_val = compute_ae_gist(gist_class,omn,eta*omn,omnigenous=False)
     AE_NCSX = np.append(AE_NCSX,AE_val)
 
 
@@ -109,9 +112,9 @@ plt.loglog(omn_vals,AE_W7X, label='W7X')
 plt.loglog(omn_vals,AE_D3D, label='D3D')
 plt.loglog(omn_vals,AE_HSX, label='HSX')
 plt.loglog(omn_vals,AE_NCSX,label='NCSX')
+plt.loglog(omn_vals[(omn_hlf)::],omn_vals[(omn_hlf)::], label='1-law',linestyle='dashdot',color='black')
 plt.loglog(omn_vals[0:(omn_hlf)],omn_vals[0:(omn_hlf)]**(2), label='2-law',linestyle='dashed',color='black')
-plt.loglog(omn_vals[0:int((omn_hlf/2))],omn_vals[0:int((omn_hlf/2))]**(7/2)*10, label='7/2-law',linestyle='dashed',color='black')
-plt.loglog(omn_vals[(omn_hlf)::],omn_vals[(omn_hlf)::], label='1-law',linestyle='dashed',color='black')
+plt.loglog(omn_vals[0:int((omn_hlf/2))],omn_vals[0:int((omn_hlf/2))]**(7/2)*10, label='7/2-law',linestyle='dotted',color='black')
 plt.legend()
 plt.xlabel('omn')
 plt.ylabel('available energy')

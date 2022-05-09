@@ -5,6 +5,9 @@ from    numba           import  jit
 from    scipy.signal    import  find_peaks
 import  scipy.integrate as      integrate
 from    scipy           import  special
+import  quadpy
+
+
 
 
 @jit
@@ -219,6 +222,30 @@ def w_bounce(q0,L_tot,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam,Delta_x,De
 
 
 @jit
+def w_bounce_and_wells(q0,L_tot,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam,Delta_x,Delta_y):
+    """
+    Calculate the drift frequencies and bounce time
+    """
+    h_arr_0 = q0 * b_arr * sqrtg_arr
+    denom_arr = bounce_average(theta_arr,h_arr_0,b_arr,lam)
+
+    h_arr_1 = lam * Delta_x * dbdx_arr * q0 * b_arr * sqrtg_arr
+    numer_arr_alpha = bounce_average(theta_arr,h_arr_1,b_arr,lam)
+
+    h_arr_2 = -1.0 * lam * Delta_y * dbdy_arr * q0 * b_arr * sqrtg_arr
+    numer_arr_psi = bounce_average(theta_arr,h_arr_2,b_arr,lam)
+
+    bounce_idx, bounce_arr, num_wells = bounce_wells(theta_arr,b_arr,lam)
+
+
+    # Make arrays for w_psi, w_alpha, and G
+    w_psi_arr   = numer_arr_psi   / denom_arr
+    w_alpha_arr = numer_arr_alpha / denom_arr
+    G_arr       = denom_arr       / L_tot
+    return w_psi_arr, w_alpha_arr, G_arr, bounce_arr
+
+
+@jit
 def ae_integrand(walpha,wpsi,G,dlnTdx,dlnndx,Delta_x,z):
     """
     The integrand of the AE (summed over all bounce wells hence scalar)
@@ -237,7 +264,55 @@ def ae_integrand(walpha,wpsi,G,dlnTdx,dlnndx,Delta_x,z):
     """
     wdia = Delta_x * ( dlnndx/z + dlnTdx * ( 1.0 - 3.0 / (2.0 * z) ) )
     AE = np.sum((G*(walpha*(-walpha + wdia) - wpsi**2 +
-         np.sqrt(walpha**2 + wpsi**2)*np.sqrt((walpha - wdia)**2 + wpsi**2))*z**2.5)/np.exp(z))
+         np.sqrt(walpha**2 + wpsi**2)*np.sqrt((walpha - wdia)**2 + wpsi**2))*z**2.5)*np.exp(-z))
+    return AE
+
+
+@jit
+def ae_integrand_vec(walpha,wpsi,G,dlnTdx,dlnndx,Delta_x,z):
+    """
+    The integrand of the AE (summed over all bounce wells hence scalar)
+
+    Takes as input:
+    walpha      -   Array containing binormal drift for all bounce wells
+    wpsi        -   Array containing radial drift for all bounce wells
+    G           -   Array containing bounce times for all bounce wells
+    dlnTdx      -   The radial electron temperature variation
+    dlnndx      -   The radial electron density variation
+    Delta_x     -   Radial size over which energy is available
+    z           -   Normalized energy
+
+    Returns:
+    AE integrand
+    """
+    wdia = Delta_x * ( dlnndx/z + dlnTdx * ( 1.0 - 3.0 / (2.0 * z) ) )
+    AE = (G*(walpha*(-walpha + wdia) - wpsi**2 +
+         np.sqrt(walpha**2 + wpsi**2)*np.sqrt((walpha - wdia)**2 + wpsi**2))*z**2.5)*np.exp(-z)
+    return AE
+
+
+@jit
+def ae_integrand_GL(walpha,wpsi,G,dlnTdx,dlnndx,Delta_x,z):
+    """
+    The integrand of the AE (summed over all bounce wells hence scalar)
+    Adjusted for gauss laguerre quadrature rules. Works poorly in weakly
+    driven regimes. May be faster in strongly driven regimes.
+
+    Takes as input:
+    walpha      -   Array containing binormal drift for all bounce wells
+    wpsi        -   Array containing radial drift for all bounce wells
+    G           -   Array containing bounce times for all bounce wells
+    dlnTdx      -   The radial electron temperature variation
+    dlnndx      -   The radial electron density variation
+    Delta_x     -   Radial size over which energy is available
+    z           -   Normalized energy
+
+    Returns:
+    AE integrand
+    """
+    wdia = Delta_x * ( dlnndx/z + dlnTdx * ( 1.0 - 3.0 / (2.0 * z) ) )
+    AE = z**2.5 * np.sum((G*(walpha*(-walpha + wdia) - wpsi**2 +
+         np.sqrt(walpha**2 + wpsi**2)*np.sqrt((walpha - wdia)**2 + wpsi**2))))
     return AE
 
 
@@ -274,12 +349,12 @@ def lambda_filtered(lambda_arr,B_arr,delta_lambda):
     B_max_idx       = find_peaks(B_arr)[0]
     # Find corresponding beta vals and lambda vals
     B_local_max  = np.asarray([B_arr[i] for i in B_max_idx])
-    lamdba_inf      = 1.0 / ( 1.0 + B_local_max )
+    lamdba_inf      = 1.0 / (  B_local_max )
     # construct range(lambda)
     max_B    = np.amax(B_arr)
     min_B    = np.amin(B_arr)
-    lambda_max  = 1.0/(1.0+min_B)
-    lambda_min  = 1.0/(1.0+max_B)
+    lambda_max  = 1.0/(min_B)
+    lambda_min  = 1.0/(max_B)
     lambda_range= lambda_max-lambda_min
     # loop over lambda inf and delete lambdas within singularity padding
     for lambda_inf_val in lamdba_inf:
@@ -311,8 +386,9 @@ def integral_over_z(c0,c1):
 vint = np.vectorize(integral_over_z, otypes=[np.float64])
 
 
-def ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam_res,Delta_theta,del_sing,L_tot,omnigenous=False):
-
+def ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam_res,Delta_theta,del_sing,L_tot,omnigenous=False,GL=False,N_laguerre=100):
+    if (omnigenous == False) and (GL == True):
+        scheme = quadpy.e1r.gauss_laguerre(N_laguerre)
     # make arrays periodic
     b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr = make_per(b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,Delta_theta)
 
@@ -334,8 +410,54 @@ def ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,
             c1 = 1.0 - Delta_x * dlnTdx / w_alpha_arr
             ae_per_lam[lam_idx] = 3/4 * np.sqrt(np.pi) * np.sum((w_alpha_arr**2.0) * vint(c0,c1) * G_arr)
         elif omnigenous == False:
-            ae_per_lam[lam_idx] = integrate.quad(lambda z: ae_integrand(w_alpha_arr,w_psi_arr,G_arr,dlnTdx,dlnndx,Delta_x,z), 0, np.inf)[0]
+            if GL == False:
+                ae_per_lam[lam_idx] = integrate.quad(lambda z: ae_integrand(w_alpha_arr,w_psi_arr,G_arr,dlnTdx,dlnndx,Delta_x,z), 0, np.inf, epsrel=1e-6,epsabs=1e-20, limit=1000)[0]
+            elif GL == True:
+                func = lambda z: ae_integrand_GL(w_alpha_arr,w_psi_arr,G_arr,dlnTdx,dlnndx,Delta_x,z)
+                aev  = np.vectorize(func)
+                ae_per_lam[lam_idx] = scheme.integrate(lambda z: aev(z))[0]
+
 
     # calculate ae final
     ae = np.trapz(ae_per_lam,lam_arr)
     return ae
+
+
+def ae_total_over_z(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam_res,Delta_theta,del_sing,L_tot,omnigenous=False):
+    # check list depth
+    depth = lambda L: isinstance(L,list) and max(map(depth,L))+1
+
+    # make arrays periodic
+    b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr = make_per(b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,Delta_theta)
+
+    # calculate the lambda range
+    lam_min = 1.0/(np.amax(b_arr))
+    lam_max = 1.0/(np.amin(b_arr))
+
+    # make arrays for lambda
+    lam_arr = np.linspace(lam_min,lam_max,lam_res+1,endpoint=False)
+    lam_arr = np.delete(lam_arr, 0)
+    lam_arr = lambda_filtered(lam_arr,b_arr,del_sing)
+    ae_lam  = np.empty_like(lam_arr)
+
+    # Loop over lambda indices
+    ae_per_lam = []
+    ae_bw      = []
+    for lam_idx, lam_val in np.ndenumerate(lam_arr):
+        w_psi_arr, w_alpha_arr, G_arr, bounce_arr = w_bounce_and_wells(q0,L_tot,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam_val,Delta_x,Delta_y)
+        ae_bw.append(bounce_arr.tolist())
+        if omnigenous == True:
+            c0 = Delta_x * (dlnndx - 3/2 * dlnTdx) / w_alpha_arr
+            c1 = 1.0 - Delta_x * dlnTdx / w_alpha_arr
+            vals = 3/4 * np.sqrt(np.pi) * (w_alpha_arr**2.0) * vint(c0,c1) * G_arr
+            ae_per_lam.append( vals.tolist() )
+            ae_lam[lam_idx]  = np.sum(vals)
+        elif omnigenous == False:
+            ae_over_z, err = integrate.quad_vec(lambda z: ae_integrand_vec(w_alpha_arr,w_psi_arr,G_arr,dlnTdx,dlnndx,Delta_x,z), 0, np.inf, epsrel=1e-6,epsabs=1e-20, limit=1000)
+            ae_per_lam.append(list(ae_over_z))
+            ae_lam[lam_idx]  = np.sum(ae_over_z)
+
+    ae = np.trapz(ae_lam,lam_arr)
+
+
+    return ae_bw, lam_arr, ae_per_lam, ae
