@@ -1,5 +1,5 @@
 # STELLOPT_AE
-Available Energy implementation in STELLOPT ( https://arxiv.org/pdf/2109.01042.pdf )
+[Available Energy](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.128.175001) implementation in STELLOPT
 
 You may need to edit the FC and FLAGS variable in the makefile to build on your machine.
 
