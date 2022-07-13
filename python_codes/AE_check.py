@@ -96,7 +96,8 @@ for idx, omn in np.ndenumerate(omn_vals):
 
 plt.loglog(omn_vals,AE_HSX, label='HSX (AE)')
 plt.loglog(omn_vals,AS_HSX, label='HSX (AS)')
+plt.loglog(omn_vals,AE_HSX-AS_HSX, label='HSX (AE-AS)')
 plt.legend()
-plt.xlabel('omn')
+plt.xlabel('density gradient')
 plt.ylabel('available energy')
 plt.show()
