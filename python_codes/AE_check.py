@@ -1,8 +1,15 @@
 import  f90nml
-import  AE_routines     as  ae
+import  AE_routines         as  ae
 import  re
 import  numpy as np
 import  matplotlib.pyplot   as plt
+import  matplotlib          as mpl
+from    matplotlib          import  rc
+mpl.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}'] #for \text command
+# rc('font',**{'family':'sans-serif','sans-serif':['Computer Modern']})
+## for Palatino and other serif fonts use:
+rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
+rc('text', usetex=True)
 
 class gist:
     def __init__(self, path_to_file):
@@ -27,7 +34,7 @@ class gist:
 
 
 
-def compute_ae_gist(gist_class,omn,omt,omnigenous):
+def compute_ae_gist(gist_class,omn,omt):
     # import relevant parameters from gist class
     params = gist_class.nml['parameters']
     q0 = params['q0']
@@ -54,11 +61,11 @@ def compute_ae_gist(gist_class,omn,omt,omnigenous):
     L_tot  = np.trapz(q0*b_arr*sqrt_g,theta_arr)
 
     # set numerical parameters
-    lam_res = 1000
+    lam_res = 100
     Delta_theta = 1e-10
     del_sing = 0.0
-    ae_val = ae.ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrt_g,theta_arr,lam_res,Delta_theta,del_sing,L_tot,omnigenous)
-    return ae_val
+    ae_val, as_val = ae.ae_total_MJG(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrt_g,theta_arr,lam_res,Delta_theta,del_sing,L_tot)
+    return ae_val, as_val
 
 
 
@@ -74,47 +81,21 @@ omn_res=100
 omn_hlf=int(omn_res/2)
 omn_vals = np.logspace(-6,6,omn_res)
 eta = 0.0
-AE_W7X = []
-AE_D3D = []
+
 AE_HSX = []
-AE_NCSX= []
-
-for idx, omn in np.ndenumerate(omn_vals):
-    file = 'gist_W7XSC.txt'
-    path_to_file = path+file
-    gist_class = gist(path_to_file)
-    AE_val = compute_ae_gist(gist_class,omn,eta*omn,omnigenous=False)
-    AE_W7X = np.append(AE_W7X,AE_val)
-
-for idx, omn in np.ndenumerate(omn_vals):
-    file = 'gist_D3D.txt'
-    path_to_file = path+file
-    gist_class = gist(path_to_file)
-    AE_val = compute_ae_gist(gist_class,omn,eta*omn,omnigenous=True)
-    AE_D3D = np.append(AE_D3D,AE_val)
+AS_HSX = []
 
 for idx, omn in np.ndenumerate(omn_vals):
     file = 'gist_HSX.txt'
     path_to_file = path+file
     gist_class = gist(path_to_file)
-    AE_val = compute_ae_gist(gist_class,omn,eta*omn,omnigenous=False)
-    AE_HSX = np.append(AE_HSX,AE_val)
-
-for idx, omn in np.ndenumerate(omn_vals):
-    file = 'gist_NCSX.txt'
-    path_to_file = path+file
-    gist_class = gist(path_to_file)
-    AE_val = compute_ae_gist(gist_class,omn,eta*omn,omnigenous=False)
-    AE_NCSX = np.append(AE_NCSX,AE_val)
+    AE_val, AS_val = compute_ae_gist(gist_class,omn,eta*omn)
+    AE_HSX         = np.append(AE_HSX,AE_val)
+    AS_HSX         = np.append(AS_HSX,AS_val)
 
 
-plt.loglog(omn_vals,AE_W7X, label='W7X')
-plt.loglog(omn_vals,AE_D3D, label='D3D')
-plt.loglog(omn_vals,AE_HSX, label='HSX')
-plt.loglog(omn_vals,AE_NCSX,label='NCSX')
-plt.loglog(omn_vals[(omn_hlf)::],omn_vals[(omn_hlf)::], label='1-law',linestyle='dashdot',color='black')
-plt.loglog(omn_vals[0:(omn_hlf)],omn_vals[0:(omn_hlf)]**(2), label='2-law',linestyle='dashed',color='black')
-plt.loglog(omn_vals[0:int((omn_hlf/2))],omn_vals[0:int((omn_hlf/2))]**(7/2)*10, label='7/2-law',linestyle='dotted',color='black')
+plt.loglog(omn_vals,AE_HSX, label='HSX (AE)')
+plt.loglog(omn_vals,AS_HSX, label='HSX (AS)')
 plt.legend()
 plt.xlabel('omn')
 plt.ylabel('available energy')

@@ -422,6 +422,37 @@ def ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,
     ae = np.trapz(ae_per_lam,lam_arr)
     return ae
 
+def ae_total_MJG(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam_res,Delta_theta,del_sing,L_tot):
+    # make arrays periodic
+    b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr = make_per(b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,Delta_theta)
+
+    # calculate the lambda range
+    lam_min = 1.0/(np.amax(b_arr))
+    lam_max = 1.0/(np.amin(b_arr))
+
+    # make arrays for lambda
+    lam_arr = np.linspace(lam_min,lam_max,lam_res+1,endpoint=False)
+    lam_arr = np.delete(lam_arr, 0)
+    lam_arr = lambda_filtered(lam_arr,b_arr,del_sing)
+
+    # Loop over lambda indices
+    ae_per_lam = np.empty(lam_res)
+    as_per_lam = np.empty(lam_res)
+    for lam_idx, lam_val in np.ndenumerate(lam_arr):
+        w_psi_arr, w_alpha_arr, G_arr = w_bounce(q0,L_tot,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam_val,Delta_x,Delta_y)
+        c0 = Delta_x * (dlnndx - 3/2 * dlnTdx) / w_alpha_arr
+        c1 = 1.0 - Delta_x * dlnTdx / w_alpha_arr
+        ae_per_lam[lam_idx] = 3/4 * np.sqrt(np.pi) * np.sum((w_alpha_arr**2.0) * vint(c0,c1) * G_arr)
+        c0 = -c0
+        c1 = -c1
+        as_per_lam[lam_idx] = 3/4 * np.sqrt(np.pi) * np.sum((w_alpha_arr**2.0) * vint(c0,c1) * G_arr)
+
+    # calculate ae final
+    ae = np.trapz(ae_per_lam,lam_arr)
+    # calculate available sinks
+    asink = np.trapz(as_per_lam,lam_arr)
+    return ae, asink
+
 
 def ae_total_over_z(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam_res,Delta_theta,del_sing,L_tot,omnigenous=False):
     # check list depth
