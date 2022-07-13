@@ -1,5 +1,5 @@
 #GCC10 Macports
-FC=gfortran-mp-10
+FC=gfortran
 FFLAGS=  -g -fbacktrace -fbounds-check -fallow-argument-mismatch # -fcheck=all -Wall -Wextra -Wconversion -pedantic -O0
 LDFLAGS=
 AR=ar -ruvs
