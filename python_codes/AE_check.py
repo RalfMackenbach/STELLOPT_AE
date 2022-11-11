@@ -40,7 +40,7 @@ def compute_ae_gist(gist_class,omn,omt,omnigenous):
     jac         = gist_class.functions[:,4]
     dBdx        = gist_class.functions[:,5]
     dBdy        = gist_class.functions[:,6]
-    sqrt_g      = 1/jac
+    sqrt_g      = jac
     B_ave       = np.trapz(q0*B*B*sqrt_g,theta_arr)/np.trapz(q0*B*sqrt_g,theta_arr)
     b_arr       = B/B_ave
     dbdx_arr    = dBdx/B_ave
