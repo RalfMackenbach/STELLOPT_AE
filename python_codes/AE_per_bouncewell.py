@@ -77,7 +77,7 @@ def plot_AE_per_bouncewell(theta_arr,b_arr,dbdx_arr,lam_arr,bw,ae_list,n_pol):
     c = 0.5
     # shift by pi
     fig ,ax = plt.subplots()
-    fig.set_size_inches(5, 3.75)
+    fig.set_size_inches(5/6*6, 5/6*3.5)
     ax.set_xlim(min(theta_arr),max(theta_arr))
 
     list_flat = []
@@ -113,46 +113,42 @@ def plot_AE_per_bouncewell(theta_arr,b_arr,dbdx_arr,lam_arr,bw,ae_list,n_pol):
     ax.set_xticks([n_pol*-np.pi,n_pol*-np.pi/2,0,n_pol*np.pi/2,n_pol*np.pi])
     ax.set_xticklabels([r'$-\pi$', r'$-\frac{\pi}{2}$',r'$0$', r'$\frac{\pi}{2}$', r'$\pi$'])
     ax.tick_params(axis='both',direction='in')
-    ax.set_title(r'nfp2')
-    plt.tight_layout()
+    plt.subplots_adjust(left=0.1, right=0.88, top=0.99, bottom=0.08)
     cbar = plt.colorbar(cm.ScalarMappable(norm=mplc.Normalize(vmin=0.0, vmax=max_val, clip=False), cmap=cm.plasma), ticks=[0, max_val], ax=ax,location='bottom',label=r'$\widehat{A}_\lambda$') #'%.3f'
     cbar.ax.set_xticklabels([0, round(max_val, 1)])
-    plt.savefig('ae_per_bw.png',format='png',dpi=1200,bbox_inches='tight')
-    plt.close()
-    return 'ae_per_bw.png'
+    plt.savefig('/Users/ralfmackenbach/Desktop/per_bw.png', format='png',
+            #This is recommendation for publication plots
+            dpi=1000)
+    plt.show()
 
 
 def compute_ae_gist(gist_class,omn,omt,omnigenous):
     # import relevant parameters from gist class
     params = gist_class.nml['parameters']
-    q0 = np.float64(params['q0'])
+    q0 = params['q0']
     n_pol = params['n_pol']
     gridpoints = params['gridpoints']
+    dpdx = params['my_dpdx']
 
     # make various arrays needed for calculations
-    theta_arr   = np.float64(np.linspace(0.0, n_pol*2*np.pi, gridpoints))
-    B           = np.float64(gist_class.functions[:,3])
-    jac         = np.float64(gist_class.functions[:,4])
-    dBdx        = np.float64(gist_class.functions[:,5])
-    dBdy        = np.float64(gist_class.functions[:,6])
-    sqrt_g      = 1/jac
-    B_ave       = np.trapz(q0*B*B*sqrt_g,theta_arr)/np.trapz(q0*B*sqrt_g,theta_arr)
-    b_arr       = B/B_ave
-    dbdx_arr    = dBdx/B_ave
-    dbdy_arr    = dBdy/B_ave
-    Delta_x     = q0
-    Delta_y     = q0
+    theta_arr   = np.linspace(0.0, n_pol*2*np.pi, gridpoints)
+    B           = gist_class.functions[:,3]
+    sqrt_g      = gist_class.functions[:,4]
+    L2          = gist_class.functions[:,5]
+    L1          = gist_class.functions[:,6]
 
     # set scalars
-    dlnTdx = np.float64(-omt)
-    dlnndx = np.float64(-omn)
-    L_tot  = np.trapz(q0*b_arr*sqrt_g,theta_arr)
+    dlnTdx = -omt
+    dlnndx = -omn
+    L_tot  = np.trapz(q0*B*sqrt_g,theta_arr)
+    Delta_x     = q0
+    Delta_y     = q0
 
     # set numerical parameters
     lam_res = 1000
     Delta_theta = 1e-10
     del_sing = 0.00
-    ae_val = ae.ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrt_g,theta_arr,lam_res,Delta_theta,del_sing,L_tot,omnigenous)
+    ae_val = ae.ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,B,L2,L1,sqrt_g,theta_arr,lam_res,Delta_theta,del_sing,L_tot,omnigenous,my_dpdx=dpdx)
     return ae_val
 
 
@@ -163,33 +159,30 @@ def compute_ae_over_z_gist(gist_class,omn,omt,omnigenous):
     q0 = params['q0']
     n_pol = params['n_pol']
     gridpoints = params['gridpoints']
+    dpdx = params['my_dpdx']
 
-    # make variious arrays needed for calculations
-    theta_arr   = np.linspace(0.0, n_pol*2*np.pi, gridpoints) - n_pol*np.pi
+    # make various arrays needed for calculations
+    theta_arr   = np.linspace(-n_pol*np.pi, n_pol*np.pi, gridpoints)
     B           = gist_class.functions[:,3]
-    jac         = gist_class.functions[:,4]
-    dBdx        = gist_class.functions[:,5]
-    dBdy        = gist_class.functions[:,6]
-    sqrt_g      = 1/jac
-    B_ave       = np.trapz(q0*B*B*sqrt_g,theta_arr)/np.trapz(q0*B*sqrt_g,theta_arr)
-    b_arr       = B/B_ave
-    dbdx_arr    = dBdx/B_ave
-    dbdy_arr    = dBdy/B_ave
-    Delta_x     = q0
-    Delta_y     = q0
+    sqrt_g      = gist_class.functions[:,4]
+    L2          = gist_class.functions[:,5]
+    L1          = gist_class.functions[:,6]
 
     # set scalars
     dlnTdx = -omt
     dlnndx = -omn
-    L_tot  = np.trapz(q0*b_arr*sqrt_g,theta_arr)
+    L_tot  = np.trapz(q0*B*sqrt_g,theta_arr)
+    Delta_x     = q0
+    Delta_y     = q0
 
     # set numerical parameters
     lam_res = 1000
     Delta_theta = 1e-10
     del_sing = 0.0
-    bw, lam_arr, ae_list, ae_tot = ae.ae_total_over_z(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrt_g,theta_arr,lam_res,Delta_theta,del_sing,L_tot,omnigenous)
-    b_arr,dbdx_arr,dbdy_arr,sqrt_g,theta_arr = ae.make_per(b_arr,dbdx_arr,dbdy_arr,sqrt_g,theta_arr,Delta_theta)
-    filename = plot_AE_per_bouncewell(theta_arr,b_arr,dbdx_arr,lam_arr,bw,ae_list,n_pol)
+    bw, lam_arr, ae_list, ae_tot = ae.ae_total_over_z(q0,dlnTdx,dlnndx,Delta_x,Delta_y,B,L2,L1,sqrt_g,theta_arr,lam_res,Delta_theta,del_sing,L_tot,omnigenous,my_dpdx=dpdx)
+    print(ae_tot)
+    B,L2,L1,sqrt_g,theta_arr = ae.make_per(B,L2,L1,sqrt_g,theta_arr,Delta_theta)
+    filename = plot_AE_per_bouncewell(theta_arr,B,L2,lam_arr,bw,ae_list,n_pol)
     return filename
 
 
@@ -201,8 +194,8 @@ def compute_ae_over_z_gist(gist_class,omn,omt,omnigenous):
 # Do AE per trapping well
 
 path = 'gist_files/'
-file = 'gist_nfp2_nr.dat'
-omn_val = 3
+file = 'gist_D3D.txt' #'gist_W7XSC.txt'
+omn_val = 3.0
 eta = 0.0
 
 

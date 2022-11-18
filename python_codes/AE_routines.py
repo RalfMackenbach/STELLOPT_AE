@@ -200,17 +200,20 @@ def bounce_average(theta_arr,h_arr,b_arr,lam):
 
 
 @jit
-def w_bounce(q0,L_tot,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam,Delta_x,Delta_y):
+def w_bounce(q0,L_tot,b_arr,L2_arr,L1_arr,sqrtg_arr,theta_arr,lam,Delta_x,Delta_y,my_dpdx=0.0):
     """
     Calculate the drift frequencies and bounce time
     """
+    # Bounce time
     h_arr_0 = q0 * b_arr * sqrtg_arr
     denom_arr = bounce_average(theta_arr,h_arr_0,b_arr,lam)
-
-    h_arr_1 = lam * Delta_x * dbdx_arr * q0 * b_arr * sqrtg_arr
+    # Delta alpha
+    arr_alpha = L2_arr * (lam + 2 * (1 - lam * b_arr)/b_arr ) - my_dpdx*(1 - lam * b_arr)/b_arr**2.0
+    h_arr_1 = Delta_x * arr_alpha * q0 * b_arr * sqrtg_arr
     numer_arr_alpha = bounce_average(theta_arr,h_arr_1,b_arr,lam)
-
-    h_arr_2 = -1.0 * lam * Delta_y * dbdy_arr * q0 * b_arr * sqrtg_arr
+    # Delta psi
+    arr_psi = L1_arr * (lam + 2 * (1 - lam * b_arr)/b_arr )
+    h_arr_2 = Delta_y * arr_psi * q0 * b_arr * sqrtg_arr
     numer_arr_psi = bounce_average(theta_arr,h_arr_2,b_arr,lam)
 
 
@@ -222,17 +225,20 @@ def w_bounce(q0,L_tot,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam,Delta_x,De
 
 
 @jit
-def w_bounce_and_wells(q0,L_tot,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam,Delta_x,Delta_y):
+def w_bounce_and_wells(q0,L_tot,b_arr,L2_arr,L1_arr,sqrtg_arr,theta_arr,lam,Delta_x,Delta_y,my_dpdx=0.0):
     """
     Calculate the drift frequencies and bounce time
     """
+    # Bounce time
     h_arr_0 = q0 * b_arr * sqrtg_arr
     denom_arr = bounce_average(theta_arr,h_arr_0,b_arr,lam)
-
-    h_arr_1 = lam * Delta_x * dbdx_arr * q0 * b_arr * sqrtg_arr
+    # Delta alpha
+    arr_alpha = L2_arr * (lam + 2 * (1 - lam * b_arr)/b_arr ) - my_dpdx*(1 - lam * b_arr)/b_arr**2.0
+    h_arr_1 = Delta_x * arr_alpha * q0 * b_arr * sqrtg_arr
     numer_arr_alpha = bounce_average(theta_arr,h_arr_1,b_arr,lam)
-
-    h_arr_2 = -1.0 * lam * Delta_y * dbdy_arr * q0 * b_arr * sqrtg_arr
+    # Delta psi
+    arr_psi = L1_arr * (lam + 2 * (1 - lam * b_arr)/b_arr )
+    h_arr_2 = Delta_y * arr_psi * q0 * b_arr * sqrtg_arr
     numer_arr_psi = bounce_average(theta_arr,h_arr_2,b_arr,lam)
 
     bounce_idx, bounce_arr, num_wells = bounce_wells(theta_arr,b_arr,lam)
@@ -317,15 +323,15 @@ def ae_integrand_GL(walpha,wpsi,G,dlnTdx,dlnndx,Delta_x,z):
 
 
 @jit
-def make_per(b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,Delta_theta):
+def make_per(b_arr,L2,L1,sqrtg_arr,theta_arr,Delta_theta):
     """
     Makes arrays periodic by appending first value to last, and for
     theta a small padding region of theta_last + Delta_theta is added.
     """
     # make periodic
     b_arr_p    = np.append(b_arr,b_arr[0])
-    dbdx_arr_p = np.append(dbdx_arr,dbdx_arr[0])
-    dbdy_arr_p = np.append(dbdy_arr,dbdy_arr[0])
+    dbdx_arr_p = np.append(L2,L2[0])
+    dbdy_arr_p = np.append(L1,L1[0])
     sqrtg_arr_p= np.append(sqrtg_arr,sqrtg_arr[0])
     theta_arr_p= np.append(theta_arr,theta_arr[-1]+Delta_theta)
 
@@ -386,11 +392,11 @@ def integral_over_z(c0,c1):
 vint = np.vectorize(integral_over_z, otypes=[np.float64])
 
 
-def ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam_res,Delta_theta,del_sing,L_tot,omnigenous=False,GL=False,N_laguerre=100):
+def ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,L2,L1,sqrtg_arr,theta_arr,lam_res,Delta_theta,del_sing,L_tot,omnigenous=False,my_dpdx=0.0,GL=False,N_laguerre=100):
     if (omnigenous == False) and (GL == True):
         scheme = quadpy.e1r.gauss_laguerre(N_laguerre)
     # make arrays periodic
-    b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr = make_per(b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,Delta_theta)
+    b_arr,L2_arr,L1_arr,sqrtg_arr,theta_arr = make_per(b_arr,L2,L1,sqrtg_arr,theta_arr,Delta_theta)
 
     # calculate the lambda range
     lam_min = 1.0/(np.amax(b_arr))
@@ -404,7 +410,7 @@ def ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,
     # Loop over lambda indices
     ae_per_lam = np.empty(lam_res)
     for lam_idx, lam_val in np.ndenumerate(lam_arr):
-        w_psi_arr, w_alpha_arr, G_arr = w_bounce(q0,L_tot,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam_val,Delta_x,Delta_y)
+        w_psi_arr, w_alpha_arr, G_arr = w_bounce(q0,L_tot,b_arr,L2_arr,L1_arr,sqrtg_arr,theta_arr,lam_val,Delta_x,Delta_y,my_dpdx)
         if omnigenous == True:
             c0 = Delta_x * (dlnndx - 3/2 * dlnTdx) / w_alpha_arr
             c1 = 1.0 - Delta_x * dlnTdx / w_alpha_arr
@@ -423,12 +429,12 @@ def ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,
     return ae
 
 
-def ae_total_over_z(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam_res,Delta_theta,del_sing,L_tot,omnigenous=False):
+def ae_total_over_z(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,L2,L1,sqrtg_arr,theta_arr,lam_res,Delta_theta,del_sing,L_tot,omnigenous=False,my_dpdx=0.0):
     # check list depth
     depth = lambda L: isinstance(L,list) and max(map(depth,L))+1
 
     # make arrays periodic
-    b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr = make_per(b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,Delta_theta)
+    b_arr,L2_arr,L1_arr,sqrtg_arr,theta_arr = make_per(b_arr,L2,L1,sqrtg_arr,theta_arr,Delta_theta)
 
     # calculate the lambda range
     lam_min = 1.0/(np.amax(b_arr))
@@ -444,7 +450,7 @@ def ae_total_over_z(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqr
     ae_per_lam = []
     ae_bw      = []
     for lam_idx, lam_val in np.ndenumerate(lam_arr):
-        w_psi_arr, w_alpha_arr, G_arr, bounce_arr = w_bounce_and_wells(q0,L_tot,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam_val,Delta_x,Delta_y)
+        w_psi_arr, w_alpha_arr, G_arr, bounce_arr = w_bounce_and_wells(q0,L_tot,b_arr,L2_arr,L1_arr,sqrtg_arr,theta_arr,lam_val,Delta_x,Delta_y,my_dpdx)
         ae_bw.append(bounce_arr.tolist())
         if omnigenous == True:
             c0 = Delta_x * (dlnndx - 3/2 * dlnTdx) / w_alpha_arr

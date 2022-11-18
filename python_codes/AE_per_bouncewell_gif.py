@@ -126,34 +126,30 @@ def plot_AE_per_bouncewell(theta_arr,b_arr,dbdx_arr,lam_arr,bw,ae_list,ae,omn,id
 def compute_ae_gist(gist_class,omn,omt,omnigenous):
     # import relevant parameters from gist class
     params = gist_class.nml['parameters']
-    q0 = np.float64(params['q0'])
+    q0 = params['q0']
     n_pol = params['n_pol']
     gridpoints = params['gridpoints']
+    dpdx = params['my_dpdx']
 
     # make various arrays needed for calculations
-    theta_arr   = np.float64(np.linspace(0.0, n_pol*2*np.pi, gridpoints))
-    B           = np.float64(gist_class.functions[:,3])
-    jac         = np.float64(gist_class.functions[:,4])
-    dBdx        = np.float64(gist_class.functions[:,5])
-    dBdy        = np.float64(gist_class.functions[:,6])
-    sqrt_g      = 1/jac
-    B_ave       = np.trapz(q0*B*B*sqrt_g,theta_arr)/np.trapz(q0*B*sqrt_g,theta_arr)
-    b_arr       = B/B_ave
-    dbdx_arr    = dBdx/B_ave
-    dbdy_arr    = dBdy/B_ave
-    Delta_x     = q0
-    Delta_y     = q0
+    theta_arr   = np.linspace(0.0, n_pol*2*np.pi, gridpoints)
+    B           = gist_class.functions[:,3]
+    sqrt_g      = gist_class.functions[:,4]
+    L2          = gist_class.functions[:,5]
+    L1          = gist_class.functions[:,6]
 
     # set scalars
-    dlnTdx = np.float64(-omt)
-    dlnndx = np.float64(-omn)
-    L_tot  = np.trapz(q0*b_arr*sqrt_g,theta_arr)
+    dlnTdx = -omt
+    dlnndx = -omn
+    L_tot  = np.trapz(q0*B*sqrt_g,theta_arr)
+    Delta_x     = q0
+    Delta_y     = q0
 
     # set numerical parameters
     lam_res = 1000
     Delta_theta = 1e-10
     del_sing = 0.00
-    ae_val = ae.ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrt_g,theta_arr,lam_res,Delta_theta,del_sing,L_tot,omnigenous)
+    ae_val = ae.ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,B,L2,L1,sqrt_g,theta_arr,lam_res,Delta_theta,del_sing,L_tot,omnigenous,my_dpdx=dpdx)
     return ae_val
 
 
@@ -164,33 +160,29 @@ def compute_ae_over_z_gist(gist_class,omn,omt,omnigenous,idx,ae_arr,omn_arr):
     q0 = params['q0']
     n_pol = params['n_pol']
     gridpoints = params['gridpoints']
+    dpdx = params['my_dpdx']
 
-    # make variious arrays needed for calculations
-    theta_arr   = np.linspace(0.0, n_pol*2*np.pi, gridpoints) - np.pi
+    # make various arrays needed for calculations
+    theta_arr   = np.linspace(-n_pol*np.pi, n_pol*np.pi, gridpoints)
     B           = gist_class.functions[:,3]
-    jac         = gist_class.functions[:,4]
-    dBdx        = gist_class.functions[:,5]
-    dBdy        = gist_class.functions[:,6]
-    sqrt_g      = 1/jac
-    B_ave       = np.trapz(q0*B*B*sqrt_g,theta_arr)/np.trapz(q0*B*sqrt_g,theta_arr)
-    b_arr       = B/B_ave
-    dbdx_arr    = dBdx/B_ave
-    dbdy_arr    = dBdy/B_ave
-    Delta_x     = q0
-    Delta_y     = q0
+    sqrt_g      = gist_class.functions[:,4]
+    L2          = gist_class.functions[:,5]
+    L1          = gist_class.functions[:,6]
 
     # set scalars
     dlnTdx = -omt
     dlnndx = -omn
-    L_tot  = np.trapz(q0*b_arr*sqrt_g,theta_arr)
+    L_tot  = np.trapz(q0*B*sqrt_g,theta_arr)
+    Delta_x     = q0
+    Delta_y     = q0
 
     # set numerical parameters
     lam_res = 500
     Delta_theta = 1e-10
     del_sing = 0.0
-    bw, lam_arr, ae_list, ae_tot = ae.ae_total_over_z(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrt_g,theta_arr,lam_res,Delta_theta,del_sing,L_tot,omnigenous)
-    b_arr,dbdx_arr,dbdy_arr,sqrt_g,theta_arr = ae.make_per(b_arr,dbdx_arr,dbdy_arr,sqrt_g,theta_arr,Delta_theta)
-    filename = plot_AE_per_bouncewell(theta_arr,b_arr,dbdx_arr,lam_arr,bw,ae_list,ae_tot,omn,idx,ae_arr,omn_arr)
+    bw, lam_arr, ae_list, ae_tot = ae.ae_total_over_z(q0,dlnTdx,dlnndx,Delta_x,Delta_y,B,L2,L1,sqrt_g,theta_arr,lam_res,Delta_theta,del_sing,L_tot,omnigenous)
+    B,L2,L1,sqrt_g,theta_arr = ae.make_per(B,L2,L1,sqrt_g,theta_arr,Delta_theta)
+    filename = plot_AE_per_bouncewell(theta_arr,B,L2,lam_arr,bw,ae_list,ae_tot,omn,idx,ae_arr,omn_arr)
     return filename
 
 
@@ -202,7 +194,7 @@ def compute_ae_over_z_gist(gist_class,omn,omt,omnigenous,idx,ae_arr,omn_arr):
 # Do AE per trapping well
 
 path = 'gist_files/'
-file = 'gist_D3D.txt'
+file = 'gist_W7XSC.txt'
 omn_res=400
 omn_vals = np.logspace(-2,1,omn_res)
 eta = 0.0

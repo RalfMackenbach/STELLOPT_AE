@@ -33,31 +33,27 @@ def compute_ae_gist(gist_class,omn,omt,omnigenous):
     q0 = params['q0']
     n_pol = params['n_pol']
     gridpoints = params['gridpoints']
+    dpdx = params['my_dpdx']
 
-    # make variious arrays needed for calculations
-    theta_arr   = np.linspace(0.0, n_pol*2*np.pi, gridpoints)
+    # make various arrays needed for calculations
+    theta_arr   = np.linspace(0.0, n_pol*2*np.pi, gridpoints, endpoint=False)
     B           = gist_class.functions[:,3]
-    jac         = gist_class.functions[:,4]
-    dBdx        = gist_class.functions[:,5]
-    dBdy        = gist_class.functions[:,6]
-    sqrt_g      = 1/jac
-    B_ave       = np.trapz(q0*B*B*sqrt_g,theta_arr)/np.trapz(q0*B*sqrt_g,theta_arr)
-    b_arr       = B/B_ave
-    dbdx_arr    = dBdx/B_ave
-    dbdy_arr    = dBdy/B_ave
-    Delta_x     = q0
-    Delta_y     = q0
+    sqrt_g      = gist_class.functions[:,4]
+    L2          = gist_class.functions[:,5]
+    L1          = gist_class.functions[:,6]
 
     # set scalars
     dlnTdx = -omt
     dlnndx = -omn
-    L_tot  = np.trapz(q0*b_arr*sqrt_g,theta_arr)
+    L_tot  = np.trapz(q0*B*sqrt_g,theta_arr)
+    Delta_x= q0
+    Delta_y= q0
 
     # set numerical parameters
     lam_res = 1000
     Delta_theta = 1e-10
     del_sing = 0.0
-    ae_val = ae.ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,b_arr,dbdx_arr,dbdy_arr,sqrt_g,theta_arr,lam_res,Delta_theta,del_sing,L_tot,omnigenous)
+    ae_val = ae.ae_total(q0,dlnTdx,dlnndx,Delta_x,Delta_y,B,L2,L1,sqrt_g,theta_arr,lam_res,Delta_theta,del_sing,L_tot,omnigenous,my_dpdx=dpdx)
     return ae_val
 
 
