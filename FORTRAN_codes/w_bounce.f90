@@ -21,12 +21,12 @@ subroutine w_bounce(q0,L_tot,b_arr,dbdx_arr,dbdy_arr,sqrtg_arr,theta_arr,lam, &
                       bounce_arr,denom_arr,N)
   ! Now construct omega_alpha and omega_psi
   ! print *,'calculating alpha num'
-  h_arr = lam * Delta_x * dbdx_arr * q0 * b_arr * sqrtg_arr
+  h_arr = Delta_x * ( lam - 2 * (1 - lambda*b_arr)/b_arr ) * dbdx_arr * q0 * b_arr * sqrtg_arr
   CALL bounce_average(h_arr,b_arr,theta_arr,lam,num_wells,bounce_idx, &
                       bounce_arr,numer_arr_alpha,N)
 
   ! print *,'calculating psi num'
-  h_arr = -1.0 * lam * Delta_y * dbdy_arr * q0 * b_arr * sqrtg_arr
+  h_arr = -1.0 * Delta_y * ( lam - 2 * (1 - lambda*b_arr)/b_arr ) * dbdy_arr * q0 * b_arr * sqrtg_arr
   CALL bounce_average(h_arr,b_arr,theta_arr,lam,num_wells,bounce_idx, &
                       bounce_arr,numer_arr_psi,N)
 
