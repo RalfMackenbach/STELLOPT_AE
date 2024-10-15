@@ -1,8 +1,8 @@
 #GCC10 Macports
-FC=gfortran-mp-10
-FFLAGS=  -g -fbacktrace -fbounds-check -fallow-argument-mismatch # -fcheck=all -Wall -Wextra -Wconversion -pedantic -O0
-LDFLAGS=
-AR=ar -ruvs
+FC?=gfortran-mp-10
+FFLAGS?=  -g -fbacktrace -fbounds-check -fallow-argument-mismatch # -fcheck=all -Wall -Wextra -Wconversion -pedantic -O0
+LDFLAGS?=
+AR?=ar -ruvs
 
 #Marconi
 #FC=ifort
